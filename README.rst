@@ -37,6 +37,10 @@ Quote Search::
 
     !q search
 
+Quote Switch. Switches around two words in the same sentence.::
+
+    !sd word1 word2
+
 Besides these explicit commands there are some more features in it:
  - Recording all raw activity in the database
  - Posting URL title if someone links an URL in the chat

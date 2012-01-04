@@ -93,12 +93,13 @@ EOT
 
 print "Generating prepared statements\n";
 my %dbsth = (
-	'activity',     $dbh->prepare("INSERT INTO activity (type, timestamp, who, raw_nick, channel, body, address) VALUES (?, strftime('%s', 'now'), ?, ?, ?, ?, ?);"),
-	'karma_select', $dbh->prepare("SELECT karma FROM karma WHERE name = ? LIMIT 1;"),
-	'karma_insert', $dbh->prepare("INSERT INTO karma (name, karma) VALUES (?, ?);"),
-	'karma_update', $dbh->prepare("UPDATE karma SET karma = ? WHERE name = ?;"),
-	'seen',         $dbh->prepare("SELECT type, timestamp, channel, body FROM activity WHERE lower(who) = lower(?) ORDER BY timestamp DESC LIMIT 1;"),
-	'searchquote',  $dbh->prepare("SELECT type, who, body FROM activity WHERE channel = ? AND body LIKE ? AND lower(who) != lower(?) AND BODY NOT LIKE \"!%\" ORDER BY timestamp DESC LIMIT 1")
+	'activity',          $dbh->prepare("INSERT INTO activity (type, timestamp, who, raw_nick, channel, body, address) VALUES (?, strftime('%s', 'now'), ?, ?, ?, ?, ?);"),
+	'karma_select',      $dbh->prepare("SELECT karma FROM karma WHERE name = ? LIMIT 1;"),
+	'karma_insert',      $dbh->prepare("INSERT INTO karma (name, karma) VALUES (?, ?);"),
+	'karma_update',      $dbh->prepare("UPDATE karma SET karma = ? WHERE name = ?;"),
+	'seen',              $dbh->prepare("SELECT type, timestamp, channel, body FROM activity WHERE lower(who) = lower(?) ORDER BY timestamp DESC LIMIT 1;"),
+	'searchquote',       $dbh->prepare("SELECT type, who, body FROM activity WHERE channel = ? AND body LIKE ? AND lower(who) != lower(?) AND BODY NOT LIKE \"!%\" ORDER BY timestamp DESC LIMIT 1"),
+	'searchquotedouble', $dbh->prepare("SELECT type, who, body FROM activity WHERE channel = ? AND body LIKE ? AND body LIKE ? AND lower(who) != lower(?) AND BODY NOT LIKE \"!%\" ORDER BY timestamp DESC LIMIT 1")
 );
 
 my $bot;
@@ -129,6 +130,7 @@ sub said {
 	hookSaidSeen($self, $message);
 	hookSaidQuoteReplace($self, $message);
 	hookSaidQuoteSearch($self, $message);
+	hookSaidQuoteSwitch($self, $message);
 	hookSaidURLTitle($self, $message);
 
 	# Activity
@@ -410,6 +412,37 @@ sub hookSaidQuoteSearch {
 	$dbsth{searchquote}->fetch;
 
 	return unless defined($who);
+
+	switch ($type) {
+		case 'said' {
+			$self->say(channel => $message->{channel}, body => "<$who> $body");
+		}
+		case 'emote' {
+			$self->say(channel => $message->{channel}, body => "* $who $body");
+		}
+	}
+}
+
+# Quote Switch
+sub hookSaidQuoteSwitch {
+	my ($self, $message) = @_;
+
+	return unless ($message->{body} =~ /^!sd (?:\"([^"]+)\"|(.+?)) (?:\"([^"]+)\"|(.+))$/);
+
+	my $word1 = $1 || $2;
+	my $word2 = $3 || $4;
+	my ($type, $who, $body);
+
+	# Search latest line, not by our bot and not starting with !s
+	$dbsth{searchquotedouble}->execute($message->{channel}, "%$word1%", "%$word2%", $self->pocoirc->nick_name);
+	$dbsth{searchquotedouble}->bind_columns(\$type, \$who, \$body);
+	$dbsth{searchquotedouble}->fetch;
+
+	return unless defined($who);
+
+	eval("\$body =~ s/\Q$word1\E/###QUOTE_REPLACE_VAR###/ig;");
+	eval("\$body =~ s/\Q$word2\E/\Q$word1\E/ig;");
+	eval("\$body =~ s/###QUOTE_REPLACE_VAR###/\Q$word2\E/ig;");
 
 	switch ($type) {
 		case 'said' {
