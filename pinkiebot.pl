@@ -380,10 +380,10 @@ sub hookSaidQuoteReplace {
 	return unless defined($who);
 
 	# !ss is replace all occurences (regex global), !s is replace first
-	# occurence
+	# occurence. Also escape all meta characters.
 	($cmd eq 'ss')
-		? eval("\$body =~ s/$search/$replace/ig;")
-		: eval("\$body =~ s/$search/$replace/i;");
+		? eval("\$body =~ s/\Q$search\E/\Q$replace\E/ig;")
+		: eval("\$body =~ s/\Q$search\E/\Q$replace\E/i;");
 
 	switch ($type) {
 		case 'said' {
