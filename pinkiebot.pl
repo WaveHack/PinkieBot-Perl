@@ -440,9 +440,10 @@ sub hookSaidQuoteSwitch {
 
 	return unless defined($who);
 
-	eval("\$body =~ s/\Q$word1\E/###QUOTE_REPLACE_VAR###/ig;");
+
+	eval("\$body =~ s/\Q$word1\E/\x1A/ig;");
 	eval("\$body =~ s/\Q$word2\E/\Q$word1\E/ig;");
-	eval("\$body =~ s/###QUOTE_REPLACE_VAR###/\Q$word2\E/ig;");
+	eval("\$body =~ s/\x1A/\Q$word2\E/ig;");
 
 	switch ($type) {
 		case 'said' {
