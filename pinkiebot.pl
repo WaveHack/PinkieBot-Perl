@@ -328,7 +328,10 @@ sub hookSaidSeen {
 	$dbsth{seen}->bind_columns(\$type, \$timestamp, \$channel, \$body);
 	$dbsth{seen}->fetch;
 
-	$self->say(channel => $message->{channel}, body => "Sorry, I have not seen $who before") unless (defined($type) || ($channel eq 'msg'));
+	unless (defined($type) || (defined($channel) && ($channel eq 'msg'))) {
+		$self->say(channel => $message->{channel}, body => "Sorry, I have not seen $who before");
+		return;
+	}
 
 	# Relative date
 	$timestamp = secsToString(time() - $timestamp);
