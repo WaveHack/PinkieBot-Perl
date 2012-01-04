@@ -525,7 +525,7 @@ sub canKick {
 $bot = PinkieBot->new(
 	server   => $cfg->val('irc', 'server'),
 	port     => $cfg->val('irc', 'port', '6667'),
-	channels => split(' ', $cfg->val('irc', 'channels')),
+	channels => [split(' ', $cfg->val('irc', 'channels'))],
 	nick     => $cfg->val('irc', 'nick'),
 	name     => ('PinkieBot v' . $version)
 );
