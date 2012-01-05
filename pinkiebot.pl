@@ -384,8 +384,8 @@ sub hookSaidQuoteReplace {
 	# !ss is replace all occurences (regex global), !s is replace first
 	# occurence. Also escape all meta characters.
 	($cmd eq 'ss')
-		? eval("\$body =~ s/\Q$search\E/\Q$replace\E/ig;")
-		: eval("\$body =~ s/\Q$search\E/\Q$replace\E/i;");
+		? $body =~ s/\Q$search\E/\Q$replace\E/ig
+		: $body =~ s/\Q$search\E/\Q$replace\E/i;
 
 	switch ($type) {
 		case 'said' {
@@ -439,7 +439,6 @@ sub hookSaidQuoteSwitch {
 	$dbsth{searchquotedouble}->fetch;
 
 	return unless defined($who);
-
 
 	eval("\$body =~ s/\Q$word1\E/\x1A/ig;");
 	eval("\$body =~ s/\Q$word2\E/\Q$word1\E/ig;");
