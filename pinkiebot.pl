@@ -433,16 +433,16 @@ sub hookSaidQuoteSwitch {
 	my $word2 = $3 || $4;
 	my ($type, $who, $body);
 
-	# Search latest line, not by our bot and not starting with !s
+	# Search latest line, not by our bot and not starting with !
 	$dbsth{searchquotedouble}->execute($message->{channel}, "%$word1%", "%$word2%", $self->pocoirc->nick_name);
 	$dbsth{searchquotedouble}->bind_columns(\$type, \$who, \$body);
 	$dbsth{searchquotedouble}->fetch;
 
 	return unless defined($who);
 
-	eval("\$body =~ s/\Q$word1\E/\x1A/ig;");
-	eval("\$body =~ s/\Q$word2\E/\Q$word1\E/ig;");
-	eval("\$body =~ s/\x1A/\Q$word2\E/ig;");
+	$body =~ s/\Q$word1\E/\x1A/ig;
+	$body =~ s/\Q$word2\E/\Q$word1\E/ig;
+	$body =~ s/\x1A/\Q$word2\E/ig;
 
 	switch ($type) {
 		case 'said' {
