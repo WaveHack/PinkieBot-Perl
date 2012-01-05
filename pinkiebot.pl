@@ -13,7 +13,7 @@ use URI::Title 'title';
 use warnings;
 use strict;
 
-my $version = '1.0.0';
+my $version = '1.1.0';
 
 # --- Initialization ---
 
