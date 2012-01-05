@@ -14,6 +14,7 @@ use warnings;
 use strict;
 
 my $version = '1.1.0';
+my $botinfo = ('PinkieBot v' . $version . ' by WaveHack. See https://bitbucket.org/WaveHack/pinkiebot/ for more info, command usage and source code.');
 
 # --- Initialization ---
 
@@ -132,6 +133,7 @@ sub said {
 	hookSaidQuoteSearch($self, $message);
 	hookSaidQuoteSwitch($self, $message);
 	hookSaidURLTitle($self, $message);
+	hookSaidBotInfo($self, $message);
 
 	# Activity
 	$dbsth{activity}->execute('said', $message->{who}, $message->{raw_nick}, $message->{channel}, $message->{body}, $message->{address});
@@ -219,6 +221,10 @@ sub userquit {
 	$dbsth{activity}->execute('userquit', $message->{who}, undef, undef, $message->{body}, undef);
 
 	return;
+}
+
+sub help {
+	return $botinfo;
 }
 
 # --- Module hooks ---
@@ -459,11 +465,20 @@ sub hookSaidQuoteSwitch {
 sub hookSaidURLTitle {
 	my ($self, $message) = @_;
 
-	return unless ($message->{body} =~ m/((?:https?:\/\/|www\.)[-~=\\\/a-zA-Z0-9\.:_\?&%,#\+]+)/);
+	return unless ($message->{body} =~ /((?:https?:\/\/|www\.)[-~=\\\/a-zA-Z0-9\.:_\?&%,#\+]+)/);
 
 	my $title = title($1);
 
 	$self->say(channel => $message->{channel}, body => "[ $title ]") if ($title ne '');
+}
+
+# Listens to !pinkiebot and prints info about the bot
+sub hookSaidBotInfo {
+	my ($self, $message) = @_;
+
+	return unless ($message->{body} =~ /^!pinkiebot$/);
+
+	$self->say(channel => $message->{channel}, body => $botinfo);
 }
 
 # Pinkie Police module
