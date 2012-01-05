@@ -479,7 +479,7 @@ sub hookEmotePinkiePolice {
 
 	# Listen for hostile action
 	return unless (
-		($message->{body} =~ /^(slaps|hits|punches|stabs|kicks|prods|tazes|rapes|pokes) (.+)/) &&
+		($message->{body} =~ /^(slaps|hits|punches|stabs|kicks|prods|tazes|rapes) (.+)/) &&
 		canKick($self, $message->{channel}, $message->{who})
 	);
 
