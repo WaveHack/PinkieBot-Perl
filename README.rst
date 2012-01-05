@@ -17,32 +17,69 @@ scripts for viewing logs online, perhaps with some stat gathering.
 
 Commands
 --------
-Karma::
+**Karma**
+::
 
     subject++
     subject--
 
-Seen::
+*Example*::
+
+    <Person> PHP++
+    <PinkieBot> Karma for PHP is now 4.
+
+**Seen**
+::
 
     !seen name
 
-Quote Replace. Searches for the latest said or emote containing search, then
+*Example*::
+
+    <PersonA> !seen personb
+    <PinkieBot> PersonB was last seen in #channel 5 minutes 36 seconds ago saying "brb".
+
+**Quote Replace**
+
+Searches for the latest said or emote containing search, then
 echoing the said or emote with search and replace. !s replaces the first
-occurence. !ss replaces all occurences.::
+occurence. !ss replaces all occurences.
+::
 
     !s search replace
     !ss search replace
 
-Quote Search::
+*Example*::
+
+    <PersonA> foo bar
+    <PersonB> !s bar foobar
+    <PinkieBot> <PersonA> foo foobar
+
+**Quote Search**
+::
 
     !q search
 
-Quote Switch. Switches around two words in the same sentence.::
+*Example*::
+
+    <PersonA> !q youtube
+    <PinkieBot> <RandomGuy> Hey guise check this: http://www.youtube.com/watch?v=oHg5SJYRHA0
+
+**Quote Switch**
+
+Switches around two words in the same sentence.
+::
 
     !sd word1 word2
 
+*Example*::
+
+    <PersonA> foo bar
+    <PersonB> !sd foo bar
+    <PinkieBot> <PersonA> bar foo
+
 Besides these explicit commands there are some more features in it:
- - Recording all raw activity in the database
- - Posting URL title if someone links an URL in the chat
- - Prohibits hostile emotes towards people on certain periods by kicking them if
-   the bot is operator
+ - Recording all activity in raw format to the database,
+ - Posting URL title if someone links an URL in the chat. This does not work
+   with HTTPS links, however.
+ - Punishes hostile emotes towards people on certain periods by kicking them if
+   the bot is operator or half-operator.
