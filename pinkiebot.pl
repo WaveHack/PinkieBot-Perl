@@ -321,6 +321,11 @@ sub hookSaidPonify {
 		$self->say(channel => $message->{channel}, body => "It's nopony, not $1!");
 		return;
 	}
+	if ($message->{body} =~ /(somebody|someone|some one)/i) {
+		$self->emote(channel => $message->{channel}, body => ('slaps ' . $message->{who}));
+		$self->say(channel => $message->{channel}, body => "It's somepony, not $1!");
+		return;
+	}
 }
 
 # Seen module
