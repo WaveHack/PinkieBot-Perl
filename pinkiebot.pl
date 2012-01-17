@@ -408,8 +408,8 @@ sub hookSaidQuoteReplace {
 	# !ss is replace all occurences (regex global), !s is replace first
 	# occurence. Also escape all meta characters.
 	($cmd eq 'ss')
-		? $body =~ s/\Q$search\E/\Q$replace\E/ig
-		: $body =~ s/\Q$search\E/\Q$replace\E/i;
+		? $body =~ s/$search/$replace/ig
+		: $body =~ s/$search/$replace/i;
 
 	switch ($type) {
 		case 'said' {
@@ -464,9 +464,9 @@ sub hookSaidQuoteSwitch {
 
 	return unless defined($who);
 
-	$body =~ s/\Q$word1\E/\x1A/ig;
-	$body =~ s/\Q$word2\E/\Q$word1\E/ig;
-	$body =~ s/\x1A/\Q$word2\E/ig;
+	$body =~ s/$word1/\x1A/ig;
+	$body =~ s/$word2/$word1/ig;
+	$body =~ s/\x1A/$word2/ig;
 
 	switch ($type) {
 		case 'said' {
