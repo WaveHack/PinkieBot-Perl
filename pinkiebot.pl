@@ -552,29 +552,15 @@ sub hookEmotePinkiePolice {
 
 sub secsToString {
 	my $secs = shift;
-
-	my $future = 0;
-	if ($secs < 0) {
-		$secs = -$secs;
-		$future = 1;
-	}
-
-	my $days = int($secs / 86400);
-	$secs %= 86400;
-
-	my $hours = int($secs / 3600);
-	$secs %= 3600;
-
-	my $mins = int($secs / 60);
-	$secs %= 60;
-
 	my $string = "";
-	$string .= "$days days "    if $days;
-	$string .= "$hours hours "  if $hours;
-	$string .= "$mins mins "    if ($mins && !$days);
-	$string .= "$secs seconds " if (!$days && !$hours);
 
-	return ($string . ($future ? " in the future" : "ago"));
+	$string .= sprintf("%dd ", (($secs / 86400)     )) if ($secs >= 86400);
+	$string .= sprintf("%dh ", (($secs /  3600) % 24)) if ($secs >=  3600);
+	$string .= sprintf("%dm ", (($secs /    60) % 60)) if ($secs >=    60);
+	$string .= sprintf("%ds ", (($secs        ) % 60)) if ($secs         );
+	$string .= "ago";
+
+	return $string;
 }
 
 sub canKick {
