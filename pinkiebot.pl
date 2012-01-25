@@ -375,6 +375,9 @@ sub hookSaidSeen {
 		case 'chanpart' {
 			$self->say(channel => $message->{channel}, body => "$who was last seen parting channel $channel $timestamp.");
 		}
+		case 'userquit' {
+			$self->say(channel => $message->{channel}, body => "$who was last seen quiting IRC with the message: \"$body\".");
+		}
 		else {
 			# Seen in a channel
 			if ($channel ne '') {
