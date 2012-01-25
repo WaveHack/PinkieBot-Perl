@@ -467,6 +467,7 @@ sub hookSaidQuoteSwitch {
 	$body =~ s/\Q$word1\E/\x1A/ig;
 	$body =~ s/\Q$word2/$word1\E/ig;
 	$body =~ s/\x1A/\Q$word2\E/ig;
+	$body =~ s/\\(.)/$1/g;
 
 	switch ($type) {
 		case 'said' {
