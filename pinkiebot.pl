@@ -480,7 +480,7 @@ sub hookSaidBotInfo {
 sub hookSaidOatmeal {
 	my ($self, $message) = @_;
 
-	return unless ($message->{body} =~ /.*oatmeal.*/i);
+	return unless ($message->{body} =~ /oatmeal/i);
 
 	$self->say(channel => $message->{channel}, body => ($message->{who} . ": Oatmeal? Are you crazy?!?"));
 }
