@@ -26,7 +26,7 @@ use URI::Title 'title';
 use warnings;
 use strict;
 
-my $version = '1.2.1';
+my $version = '1.2.2';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack. See https://bitbucket.org/WaveHack/pinkiebot/ for more info, command usage and source code.');
 
 # --- Initialization ---
@@ -38,7 +38,7 @@ print "Loading config\n";
 # Create configuration file if not exists
 unless (-e 'pinkiebot.ini') {
 	print "No configuration file found. Creating one with placeholder variables. Please\n"
-	    . "modify pinkiebot.ini and restart the bot. Also make sure the database schema in\n";
+	    . "modify pinkiebot.ini and restart the bot. Also make sure the database schema in\n"
 	    . "pinkiebot.sql is imported in your MySQL database.\n";
 
 	my $cfg = Config::IniFiles->new();
@@ -78,7 +78,7 @@ my $dbh = DBI->connect(sprintf('DBI:mysql:%s;host=%s', $cfg->val('mysql', 'datab
 
 print "Generating prepared statements\n";
 my %dbsth = (
-	'activity',          $dbh->prepare("INSERT INTO activity (type, timestamp, who, raw_nick, channel, body, address) VALUES (?, strftime('%s', 'now'), ?, ?, ?, ?, ?);"),
+	'activity',          $dbh->prepare("INSERT INTO activity (type, timestamp, who, raw_nick, channel, body, address) VALUES (?, UNIX_TIMESTAMP(), ?, ?, ?, ?, ?);"),
 	'karma_select',      $dbh->prepare("SELECT karma FROM karma WHERE name = ? LIMIT 1;"),
 	'karma_insert',      $dbh->prepare("INSERT INTO karma (name, karma) VALUES (?, ?);"),
 	'karma_update',      $dbh->prepare("UPDATE karma SET karma = ? WHERE name = ?;"),
