@@ -119,6 +119,7 @@ sub said {
 	hookSaidURLTitle($self, $message);
 	hookSaidBotInfo($self, $message);
 	hookSaidOatmeal($self, $message);
+	hookSaidHavermout($self, $message);
 
 	# Activity
 	$dbsth{activity}->execute('said', $message->{who}, $message->{raw_nick}, $message->{channel}, $message->{body}, $message->{address});
@@ -483,6 +484,15 @@ sub hookSaidOatmeal {
 	return unless ($message->{body} =~ /oatmeal/i);
 
 	$self->say(channel => $message->{channel}, body => ($message->{who} . ": Oatmeal? Are you crazy?!?"));
+}
+
+# Dutch Oatmeal module, thanks to Quantum_bit for the idea :')
+sub hookSaidHavermout {
+	my ($self, $message) = @_;
+
+	return unless ($message->{body} =~ /havermout/i);
+
+	$self->say(channel => $message->{channel}, body => ($message->{who} . ": Havermout? Ben je gek geworden?!?"));
 }
 
 # Pinkie Police module
