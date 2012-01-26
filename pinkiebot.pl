@@ -465,6 +465,7 @@ sub hookSaidURLTitle {
 	return if ($1 eq '');
 
 	my $title = title($1);
+	return unless defined ($title);
 
 	$self->say(channel => $message->{channel}, body => "[ $title ]");
 }
