@@ -26,7 +26,7 @@ use URI::Title 'title';
 use warnings;
 use strict;
 
-my $version = '1.2.2';
+my $version = '1.2.3';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack. See https://bitbucket.org/WaveHack/pinkiebot/ for more info, command usage and source code.');
 
 # --- Initialization ---
