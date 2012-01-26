@@ -74,7 +74,8 @@ unless (
 }
 
 print "Connecting to database\n";
-my $dbh = DBI->connect(sprintf('DBI:mysql:%s;host=%s', $cfg->val('mysql', 'database'), $cfg->val('mysql', 'host')), $cfg->val('mysql', 'username'), $cfg->val('mysql', 'password'));
+my $dbh = DBI->connect(sprintf('DBI:mysql:%s;host=%s', $cfg->val('mysql', 'database'), $cfg->val('mysql', 'host')), $cfg->val('mysql', 'username'), $cfg->val('mysql', 'password'), {'mysql_enable_utf8' => 1});
+$dbh->do('SET NAMES utf8');
 
 print "Generating prepared statements\n";
 my %dbsth = (
