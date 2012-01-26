@@ -36,7 +36,7 @@ Commands
 *Example*::
 
     <PersonA> !seen personb
-    <PinkieBot> PersonB was last seen in #channel 5 minutes 36 seconds ago saying "brb".
+    <PinkieBot> PersonB was last seen in #channel 5m 36s ago saying "brb".
 
 **Quote Replace**
 
@@ -81,6 +81,8 @@ Besides these explicit commands there are some more features in it:
  - Recording all activity in raw format to the database,
  - Slaps and corrects any neighsayer who misspell the words 'anypony', 'nopony'
    'everypony' and 'somepony'.
+ - Doing her famous 'oatmeal'-quote from the show when someone types that word.
+   The Dutch variant ('havermout') is also available.
  - Posting URL title if someone links an URL in the chat. This does not work
    with HTTPS links, however.
  - Punishes hostile emotes towards people on certain periods by kicking them if
