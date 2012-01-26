@@ -26,7 +26,7 @@ use URI::Title 'title';
 use warnings;
 use strict;
 
-my $version = '1.1.5';
+my $version = '1.2.0';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack. See https://bitbucket.org/WaveHack/pinkiebot/ for more info, command usage and source code.');
 
 # --- Initialization ---
@@ -35,16 +35,23 @@ print "PinkieBot v" . $version . " started\n";
 
 print "Loading config\n";
 
+# Create configuration file if not exists
 unless (-e 'pinkiebot.ini') {
-	print "No configuration file found. Creating one with placeholder variables.\nPlease modify pinkiebot.ini and restart the bot.\n";
+	print "No configuration file found. Creating one with placeholder variables. Please\n"
+	    . "modify pinkiebot.ini and restart the bot. Also make sure the database schema in\n";
+	    . "pinkiebot.sql is imported in your MySQL database.\n";
 
 	my $cfg = Config::IniFiles->new();
+	$cfg->newval('mysql', 'host', 'localhost');
+	$cfg->newval('mysql', 'username', 'root');
+	$cfg->newval('mysql', 'password', '');
+	$cfg->newval('mysql', 'database', 'pinkiebot');
 	$cfg->newval('irc', 'nick', ('PinkieBot-' . int(rand(89999) + 10000)));
 	$cfg->newval('irc', 'nickpass', '');
 	$cfg->newval('irc', 'server', 'irc.example.net');
 	$cfg->newval('irc', 'port', 6667);
 	$cfg->newval('irc', 'channels', '#channel');
-	$cfg->SetParameterComment('irc', 'channels', 'Separate multiple channels with spaces');
+	$cfg->SetParameterComment('irc', 'channels', 'Separate multiple channels with a space');
 	$cfg->WriteConfig('pinkiebot.ini');
 	exit;
 }
@@ -52,58 +59,22 @@ unless (-e 'pinkiebot.ini') {
 my $cfg = Config::IniFiles->new(-file => 'pinkiebot.ini');
 
 unless (
-	$cfg->exists('irc', 'nick') && ($cfg->val('irc', 'nick') ne '') &&
-	$cfg->exists('irc', 'server') && ($cfg->val('irc', 'server') ne '') &&
-	$cfg->exists('irc', 'channels') && ($cfg->val('irc', 'channels') ne '')
+	$cfg->exists('mysql', 'host')     && ($cfg->val('mysql', 'host')     ne '') &&
+	$cfg->exists('mysql', 'username') && ($cfg->val('mysql', 'username') ne '') &&
+	$cfg->exists('mysql', 'password') &&
+	$cfg->exists('mysql', 'database') && ($cfg->val('mysql', 'database') ne '') &&
+	$cfg->exists('irc',   'nick')     && ($cfg->val('irc',   'nick')     ne '') &&
+	$cfg->exists('irc',   'server')   && ($cfg->val('irc',   'server')   ne '') &&
+	$cfg->exists('irc',   'channels') && ($cfg->val('irc',   'channels') ne '')
 )  {
-	print "Invalid configuration. Check that at least variables nick, server and channels\nin section [irc] are present.";
+	print "Invalid configuration. Check that at least variables nick, server and channels\n"
+	    . "in section [irc] and variables host, username, password and database in section\n"
+	    . " [mysql] are present.\n";
 	exit;
 }
 
 print "Connecting to database\n";
-my $dbh = DBI->connect('DBI:SQLite:dbname=pinkiebot.db');
-
-# Create tables if database file is empty
-unless (-s 'pinkiebot.db') {
-	my $query;
-
-	print "Creating table activity\n";
-	$query = <<EOT;
-CREATE TABLE activity (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	type TEXT,
-	timestamp INTEGER NOT NULL,
-	who TEXT,
-	raw_nick TEXT,
-	channel TEXT,
-	body TEXT,
-	address TEXT
-);
-EOT
-
-	$dbh->do($query);
-
-	print "Creating table infobot\n";
-	$query = <<EOT;
-CREATE TABLE infobot (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	key TEXT NOT NULL,
-	value TEXT NOT NULL
-);
-EOT
-
-	$dbh->do($query);
-
-	print "Creating table karma\n";
-	$query = <<EOT;
-CREATE TABLE karma (
-	name TEXT NOT NULL PRIMARY KEY,
-	karma INTEGER NOT NULL DEFAULT 0
-);
-EOT
-
-	$dbh->do($query);
-}
+my $dbh = DBI->connect(sprintf('DBI:mysql:%s;host=%s', $cfg->val('mysql', 'database'), $cfg->val('mysql', 'host')), $cfg->val('mysql', 'username'), $cfg->val('mysql', 'password'));
 
 print "Generating prepared statements\n";
 my %dbsth = (
@@ -488,10 +459,11 @@ sub hookSaidURLTitle {
 	my ($self, $message) = @_;
 
 	return unless ($message->{body} =~ /((?:https?:\/\/|www\.)[-~=\\\/a-zA-Z0-9\.:_\?&%,#\+]+)/);
+	return if ($1 eq '');
 
 	my $title = title($1);
 
-	$self->say(channel => $message->{channel}, body => "[ $title ]") if ($title ne '');
+	$self->say(channel => $message->{channel}, body => "[ $title ]");
 }
 
 # Listens to !pinkiebot and prints info about the bot
