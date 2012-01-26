@@ -118,6 +118,7 @@ sub said {
 	hookSaidQuoteSwitch($self, $message);
 	hookSaidURLTitle($self, $message);
 	hookSaidBotInfo($self, $message);
+	hookSaidOatmeal($self, $message);
 
 	# Activity
 	$dbsth{activity}->execute('said', $message->{who}, $message->{raw_nick}, $message->{channel}, $message->{body}, $message->{address});
@@ -473,6 +474,15 @@ sub hookSaidBotInfo {
 	return unless ($message->{body} =~ /^!pinkiebot$/);
 
 	$self->say(channel => $message->{channel}, body => $botinfo);
+}
+
+# Oatmeal? Are you crazy?!?
+sub hookSaidOatmeal {
+	my ($self, $message) = @_;
+
+	return unless ($message->{body} =~ /.*oatmeal.*/i);
+
+	$self->say(channel => $message->{channel}, body => ($message->{who} . ": Oatmeal? Are you crazy?!?"));
 }
 
 # Pinkie Police module
