@@ -517,7 +517,7 @@ sub hookSaidMuffin {
 
 	return unless ($message->{body} =~ /muffin/i);
 
-	$self->say(channel => $message->{channel}, body => "derp"));
+	$self->say(channel => $message->{channel}, body => "derp");
 }
 
 # Pinkie Police module
