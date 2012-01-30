@@ -87,3 +87,4 @@ Besides these explicit commands there are some more features in it:
    with HTTPS links, however.
  - Punishes hostile emotes towards people on certain periods by kicking them if
    the bot is operator or half-operator.
+ - Automatically voices people who hug the bot.

@@ -21,12 +21,15 @@ use Switch;
 use DBI;
 use DateTime;
 use DateTime::Util::Astro::Moon 'lunar_phase';
+use POE;
+use POE::Component::RSSAggregator;
+use WWW::Shorten::Bitly;
 use URI::Title 'title';
 
 use warnings;
 use strict;
 
-my $version = '1.2.5';
+my $version = '1.3.0';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack. See https://bitbucket.org/WaveHack/pinkiebot/ for more info, command usage and source code.');
 
 # --- Initialization ---
@@ -104,6 +107,15 @@ sub connected {
 		);
 	}
 
+	# Init RSS Aggregator
+	POE::Session->create(
+		inline_states => {
+			_start      => \&rss_init_session,
+			handle_feed => \&rss_handle_feed
+		},
+		args => [$bot]
+	);
+
 	print "Ready\n";
 }
 
@@ -133,6 +145,7 @@ sub emoted {
 
 	# Module hooks
 	hookEmotePinkiePolice($self, $message);
+	hookEmotePinkieHug($self, $message);
 
 	# Activity
 	$dbsth{activity}->execute('emote', $message->{who}, $message->{raw_nick}, $message->{channel}, $message->{body}, $message->{address});
@@ -539,6 +552,73 @@ sub hookEmotePinkiePolice {
 	if ($timedata[2] % 2 == 1) {
 		$self->kick($message->{channel}, $message->{who}, 'Hostile actions are not permitted during uneven hours.');
 		return;
+	}
+}
+
+# Voices users who hug/lick/praise the bot
+sub hookEmotePinkieHug {
+	my ($self, $message) = @_;
+
+	# Listen for hug/lick/praise/cheer
+	return unless (
+		($message->{body} =~ /^(hugs|licks|praises|cheers at) (.+)/) && (
+			$bot->pocoirc->is_channel_operator($message->{channel}, $bot->pocoirc->nick_name) ||
+			$bot->pocoirc->is_channel_halfop($message->{channel}, $bot->pocoirc->nick_name)
+		)
+	);
+
+	# Address bot
+	return unless (lc($2) eq lc($bot->pocoirc->nick_name));
+
+	$self->mode("$message->{channel} +v $message->{who}");
+}
+
+# --- RSS Aggregrator functions ---
+
+sub rss_init_session {
+	my ($kernel, $heap, $session, $bot) = @_[ KERNEL, HEAP, SESSION, ARG0 ];
+
+	$heap->{bot} = $bot;
+	$heap->{rssagg} = POE::Component::RSSAggregator->new(
+		alias    => 'rssagg',
+		callback => $session->postback('handle_feed')
+	);
+
+	foreach my $feed ($cfg->val('rss', 'feed')) {
+		my $offset = rindex($feed, ' ');
+
+		my $name = substr($feed, 0, $offset);
+		my $url =  substr($feed, $offset + 1);
+
+		$kernel->post('rssagg', 'add_feed', {
+			url                 => $url,
+			name                => $name,
+			delay               => $cfg->val('rss', 'delay', '300'),
+			init_headlines_seen => 1
+		});
+	}
+}
+
+sub rss_handle_feed {
+	my ($kernel, $feed, $heap) = ( $_[KERNEL], $_[ARG1]->[0], $_[HEAP] );
+
+	$bot = $heap->{bot};
+
+	for my $headline ($feed->late_breaking_news) {
+		my $url;
+
+		if (defined($cfg->val('rss', 'bitly_username')) || ($cfg->val('rss', 'bitly_username') ne '')) {
+			$url = makeashorterlink($headline->url, $cfg->val('rss', 'bitly_username'), $cfg->val('rss', 'bitly_apikey'));
+		} else {
+			$url = $headline->url;
+		}
+
+		foreach my $channel (split(' ', $cfg->val('rss', 'channels'))) {
+			$bot->say(
+				channel => $channel,
+				body    => sprintf('[[ %s: %s - %s ]]', $feed->name, $headline->headline, $url),
+			);
+		}
 	}
 }
 
