@@ -29,7 +29,7 @@ use URI::Title 'title';
 use warnings;
 use strict;
 
-my $version = '1.3.0';
+my $version = '1.3.1';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack. See https://bitbucket.org/WaveHack/pinkiebot/ for more info, command usage and source code.');
 
 # --- Initialization ---
@@ -133,6 +133,7 @@ sub said {
 	hookSaidBotInfo($self, $message);
 	hookSaidOatmeal($self, $message);
 	hookSaidHavermout($self, $message);
+	hookSaidMuffin($self, $message);
 
 	# Activity
 	$dbsth{activity}->execute('said', $message->{who}, $message->{raw_nick}, $message->{channel}, $message->{body}, $message->{address});
@@ -508,6 +509,15 @@ sub hookSaidHavermout {
 	return unless ($message->{body} =~ /havermout/i);
 
 	$self->say(channel => $message->{channel}, body => ($message->{who} . ": Havermout? Ben je gek geworden?!?"));
+}
+
+# Muffin module. Derps when somepony says 'muffin'
+sub hookSaidMuffin {
+	my ($self, $message) = @_;
+
+	return unless ($message->{body} =~ /muffin/i);
+
+	$self->say(channel => $message->{channel}, body => "derp"));
 }
 
 # Pinkie Police module
