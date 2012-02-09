@@ -15,21 +15,14 @@
 
 package PinkieBot;
 use base 'Bot::BasicBot';
-
 use Config::IniFiles;
-use Switch;
-use DBI;
-use DateTime;
-use DateTime::Util::Astro::Moon 'lunar_phase';
 use POE;
-use POE::Component::RSSAggregator;
-use WWW::Shorten::Bitly;
-use URI::Title 'title';
+use DBI;
 
 use warnings;
 use strict;
 
-my $version = '1.3.0';
+my $version = '2.0.0';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack. See https://bitbucket.org/WaveHack/pinkiebot/ for more info, command usage and source code.');
 
 # --- Initialization ---
@@ -38,11 +31,9 @@ print "PinkieBot v" . $version . " started\n";
 
 print "Loading config\n";
 
-# Create configuration file if not exists
 unless (-e 'pinkiebot.ini') {
 	print "No configuration file found. Creating one with placeholder variables. Please\n"
-	    . "modify pinkiebot.ini and restart the bot. Also make sure the database schema in\n"
-	    . "pinkiebot.sql is imported in your MySQL database.\n";
+	    , "modify pinkiebot.ini and restart the bot.\n";
 
 	my $cfg = Config::IniFiles->new();
 	$cfg->newval('mysql', 'host', 'localhost');
@@ -54,605 +45,20 @@ unless (-e 'pinkiebot.ini') {
 	$cfg->newval('irc', 'server', 'irc.example.net');
 	$cfg->newval('irc', 'port', 6667);
 	$cfg->newval('irc', 'channels', '#channel');
-	$cfg->SetParameterComment('irc', 'channels', 'Separate multiple channels with a space');
+	$cfg->SetParameterComment('irc', 'channels', 'Separate multiple channels with spaces');
+	$cfg->newval('irc', 'autoload', 'auth admin');
+	$cfg->SetParameterComment('irc', 'autoload', 'Autoload modules on start, separate with spaces');
 	$cfg->WriteConfig('pinkiebot.ini');
 	exit;
 }
 
 my $cfg = Config::IniFiles->new(-file => 'pinkiebot.ini');
 
-unless (
-	$cfg->exists('mysql', 'host')     && ($cfg->val('mysql', 'host')     ne '') &&
-	$cfg->exists('mysql', 'username') && ($cfg->val('mysql', 'username') ne '') &&
-	$cfg->exists('mysql', 'password') &&
-	$cfg->exists('mysql', 'database') && ($cfg->val('mysql', 'database') ne '') &&
-	$cfg->exists('irc',   'nick')     && ($cfg->val('irc',   'nick')     ne '') &&
-	$cfg->exists('irc',   'server')   && ($cfg->val('irc',   'server')   ne '') &&
-	$cfg->exists('irc',   'channels') && ($cfg->val('irc',   'channels') ne '')
-)  {
-	print "Invalid configuration. Check that at least variables nick, server and channels\n"
-	    . "in section [irc] and variables host, username, password and database in section\n"
-	    . " [mysql] are present.\n";
-	exit;
-}
-
-print "Connecting to database\n";
-my $dbh = DBI->connect(sprintf('DBI:mysql:%s;host=%s', $cfg->val('mysql', 'database'), $cfg->val('mysql', 'host')), $cfg->val('mysql', 'username'), $cfg->val('mysql', 'password'), {'mysql_enable_utf8' => 1});
-$dbh->do('SET NAMES utf8');
-
-print "Generating prepared statements\n";
-my %dbsth = (
-	'activity',          $dbh->prepare("INSERT INTO activity (type, timestamp, who, raw_nick, channel, body, address) VALUES (?, UNIX_TIMESTAMP(), ?, ?, ?, ?, ?);"),
-	'karma_select',      $dbh->prepare("SELECT karma FROM karma WHERE name = ? LIMIT 1;"),
-	'karma_insert',      $dbh->prepare("INSERT INTO karma (name, karma) VALUES (?, ?);"),
-	'karma_update',      $dbh->prepare("UPDATE karma SET karma = ? WHERE name = ?;"),
-	'seen',              $dbh->prepare("SELECT type, timestamp, channel, body FROM activity WHERE lower(who) = lower(?) ORDER BY timestamp DESC LIMIT 1;"),
-	'searchquote',       $dbh->prepare("SELECT type, who, body FROM activity WHERE channel = ? AND body LIKE ? AND lower(who) != lower(?) AND BODY NOT LIKE \"!%\" ORDER BY timestamp DESC LIMIT 1"),
-	'searchquotedouble', $dbh->prepare("SELECT type, who, body FROM activity WHERE channel = ? AND body LIKE ? AND body LIKE ? AND lower(who) != lower(?) AND BODY NOT LIKE \"!%\" ORDER BY timestamp DESC LIMIT 1")
-);
-
-my $bot;
-
-# --- Overridden callback methods ---
-
-sub connected {
-	print "Connected\n";
-
-	# NickServ auth
-	if ($cfg->val('irc', 'nickpass') ne '') {
-		print "Authenticating\n";
-		$bot->say(
-			channel => 'nickserv',
-			body    => ('identify ' . $cfg->val('irc', 'nickpass'))
-		);
-	}
-
-	# Init RSS Aggregator
-	POE::Session->create(
-		inline_states => {
-			_start      => \&rss_init_session,
-			handle_feed => \&rss_handle_feed
-		},
-		args => [$bot]
-	);
-
-	print "Ready\n";
-}
-
-sub said {
-	my ($self, $message) = @_;
-
-	# Module hooks
-	hookSaidKarma($self, $message);
-	hookSaidPonify($self, $message);
-	hookSaidSeen($self, $message);
-	hookSaidQuoteReplace($self, $message);
-	hookSaidQuoteSearch($self, $message);
-	hookSaidQuoteSwitch($self, $message);
-	hookSaidURLTitle($self, $message);
-	hookSaidBotInfo($self, $message);
-	hookSaidOatmeal($self, $message);
-	hookSaidHavermout($self, $message);
-
-	# Activity
-	$dbsth{activity}->execute('said', $message->{who}, $message->{raw_nick}, $message->{channel}, $message->{body}, $message->{address});
-
-	return;
-}
-
-sub emoted {
-	my ($self, $message) = @_;
-
-	# Module hooks
-	hookEmotePinkiePolice($self, $message);
-	hookEmotePinkieHug($self, $message);
-
-	# Activity
-	$dbsth{activity}->execute('emote', $message->{who}, $message->{raw_nick}, $message->{channel}, $message->{body}, $message->{address});
-
-	return;
-}
-
-sub noticed {
-	my ($self, $message) = @_;
-
-	# Ignore InfoServ, ChanServ and NickServ notices (boooriinng)
-	return if (
-		($message->{who} eq 'InfoServ')
-		|| ($message->{who} eq 'ChanServ')
-		|| ($message->{who} eq 'NickServ')
-	);
-
-	# Activity
-	$dbsth{activity}->execute('notice', $message->{who}, $message->{raw_nick}, $message->{channel}, $message->{body}, $message->{address});
-
-	return;
-}
-
-sub chanjoin {
-	my ($self, $message) = @_;
-
-	# Activity
-	$dbsth{activity}->execute('chanjoin', $message->{who}, $message->{raw_nick}, $message->{channel}, $message->{body}, $message->{address});
-
-	return;
-}
-
-sub chanpart {
-	my ($self, $message) = @_;
-
-	# Activity
-	$dbsth{activity}->execute('chanpart', $message->{who}, $message->{raw_nick}, $message->{channel}, $message->{body}, $message->{address});
-
-	return;
-}
-
-sub topic {
-	my ($self, $message) = @_;
-
-	# Activity
-	$dbsth{activity}->execute('topic', $message->{who}, $message->{raw_nick}, $message->{channel}, $message->{topic}, $message->{address});
-
-	return;
-}
-
-sub nick_change {
-	my ($self, $oldnick, $newnick) = @_;
-
-	# Activity
-	$dbsth{activity}->execute('nickchange', $oldnick, undef, undef, $newnick, undef);
-
-	return;
-}
-
-sub kicked {
-	my ($self, $message) = @_;
-
-	# Activity
-	$dbsth{activity}->execute('kicked', $message->{who}, $message->{kicked}, $message->{channel}, $message->{reason}, undef);
-
-	return;
-}
-
-sub userquit {
-	my ($self, $message) = @_;
-
-	# Activity
-	$dbsth{activity}->execute('userquit', $message->{who}, undef, undef, $message->{body}, undef);
-
-	return;
-}
-
-sub help {
-	return $botinfo;
-}
-
-# --- Module hooks ---
-
-# Karma module
-sub hookSaidKarma {
-	my ($self, $message) = @_;
-
-	my ($name, $operator, $karma);
-	my $exists = 0;
-
-	# Karma'ing the bot
-	if (
-		defined($message->{address}) &&
-		(lc($message->{address}) eq lc($self->pocoirc->nick_name)) && (
-			($message->{body} eq '-') ||
-			($message->{body} eq '++')
-		)
-	) {
-		$name = $message->{address};
-		# Addressing the bot with minus signs removes the first minus sign from
-		# the body, so check it manually here. ++ = ++, - = --. Yeah.
-		$operator = (($message->{body} eq '++') ? '++' : '--');
-
-	# Karma'ing anything else
-	} elsif ($message->{body} =~ /^([^\s]+)\s*(\+\+|\-\-)$/) {
-		$name = $1;
-		$operator = $2;
-
-	# No karma
-	} else {
-		return;
-	}
-
-	# In the past we had problems with long texts which ended in ++ or --, so
-	# just limit it to 20 characters
-	return unless (length($name) < 20);
-
-	# If someone downreps the bot and we can kick him, kick him! >:)
-	if ((lc($name) eq lc($self->pocoirc->nick_name)) && ($operator eq '--') && canKick($self, $message->{channel}, $message->{who})) {
-		$self->kick($message->{channel}, $message->{who}, 'Oh no you don\'t!');
-		return;
-	}
-
-	# Check if karma record exists in db
-	$dbsth{karma_select}->execute(lc($name));
-	$dbsth{karma_select}->bind_columns(\$karma);
-	$dbsth{karma_select}->fetch;
-
-	$exists = 1 if defined($karma);
-	$karma = 0 unless ($exists == 1);
-
-	# Do fancy math
-	eval("\$karma$operator;");
-
-	# Database update/insert
-	$exists
-		? $dbsth{karma_update}->execute($karma, lc($name))
-		: $dbsth{karma_insert}->execute(lc($name), $karma);
-
-	# Check if the bot is being addressed by the karma
-	if (lc($name) eq lc($self->pocoirc->nick_name)) {
-		# Can't kick the user (else we would have done 20 lines above), so just
-		# actually rep now and add a ':('.
-		if ($operator eq '--') {
-			$self->say(channel => $message->{channel}, body => "Karma for $name is now $karma. :(");
-		# Bot++ <3
-		} else {
-			$self->say(channel => $message->{channel}, body => "Karma for $name is now $karma (thanks! <3).");
-		}
-	} else {
-		$self->say(channel => $message->{channel}, body => "Karma for $name is now $karma.");
-	}
-}
-
-# Ponify module
-# Slaps and corrects any neighsayer who misspells the words 'anypony',
-# 'everypony' and 'nopony'
-sub hookSaidPonify {
-	my ($self, $message) = @_;
-
-	if ($message->{body} =~ /(anybody|anyone|any one)/i) {
-		$self->emote(channel => $message->{channel}, body => ('slaps ' . $message->{who}));
-		$self->say(channel => $message->{channel}, body => "It's anypony, not $1!");
-		return;
-	}
-	if ($message->{body} =~ /(everybody|everyone|every one)/i) {
-		$self->emote(channel => $message->{channel}, body => ('slaps ' . $message->{who}));
-		$self->say(channel => $message->{channel}, body => "It's everypony, not $1!");
-		return;
-	}
-	if ($message->{body} =~ /(nobody|noone|no one)/i) {
-		$self->emote(channel => $message->{channel}, body => ('slaps ' . $message->{who}));
-		$self->say(channel => $message->{channel}, body => "It's nopony, not $1!");
-		return;
-	}
-	if ($message->{body} =~ /(somebody|someone|some one)/i) {
-		$self->emote(channel => $message->{channel}, body => ('slaps ' . $message->{who}));
-		$self->say(channel => $message->{channel}, body => "It's somepony, not $1!");
-		return;
-	}
-}
-
-# Seen module
-sub hookSaidSeen {
-	my ($self, $message) = @_;
-
-	return unless ($message->{body} =~ /^!seen (.+)$/);
-
-	my $who = $1;
-	my ($type, $timestamp, $channel, $body);
-
-	$dbsth{seen}->execute($1);
-	$dbsth{seen}->bind_columns(\$type, \$timestamp, \$channel, \$body);
-	$dbsth{seen}->fetch;
-
-	unless (defined($type) || (defined($channel) && ($channel eq 'msg'))) {
-		$self->say(channel => $message->{channel}, body => "Sorry, I have not seen $who before");
-		return;
-	}
-
-	# Relative date
-	$timestamp = secsToString(time() - $timestamp);
-
-	switch ($type) {
-		case 'said' {
-			$self->say(channel => $message->{channel}, body => "$who was last seen in $channel $timestamp saying \"$body\".");
-		}
-		case 'emote' {
-			$self->say(channel => $message->{channel}, body => "$who was last seen in $channel $timestamp emoting: \"* $who $body\".");
-		}
-		case 'chanjoin' {
-			$self->say(channel => $message->{channel}, body => "$who was last seen joining channel $channel $timestamp.");
-		}
-		case 'chanpart' {
-			$self->say(channel => $message->{channel}, body => "$who was last seen parting channel $channel $timestamp.");
-		}
-		case 'userquit' {
-			$self->say(channel => $message->{channel}, body => "$who was last seen $timestamp quiting IRC with the message: \"$body\".");
-		}
-		else {
-			# Seen in a channel
-			if ($channel ne '') {
-				$self->say(channel => $message->{channel}, body => "$who was last seen in $channel $timestamp.");
-			# Seen, but not sure where
-			} else {
-				$self->say(channel => $message->{channel}, body => "$who was last seen $timestamp, although not sure where.");
-			}
-		}
-	}
-}
-
-# Quote Replace module
-sub hookSaidQuoteReplace {
-	my ($self, $message) = @_;
-
-	return unless ($message->{body} =~ /^!(ss?) (?:\"([^"]+)\"|(.+?)) (?:\"([^"]+)\"|(.+))$/);
-
-	my $cmd = $1;
-	my $search = $2 || $3;
-	my $replace = $4 || $5;
-	my ($type, $who, $body);
-
-	# Search latest line, not by our bot and not starting with !s
-	$dbsth{searchquote}->execute($message->{channel}, "%$search%", $self->pocoirc->nick_name);
-	$dbsth{searchquote}->bind_columns(\$type, \$who, \$body);
-	$dbsth{searchquote}->fetch;
-
-	return unless defined($who);
-
-	# !ss is replace all occurences (regex global), !s is replace first
-	# occurence. Also escape all meta characters.
-	($cmd eq 'ss')
-		? $body =~ s/\Q$search/$replace\E/ig
-		: $body =~ s/\Q$search/$replace\E/i;
-
-	switch ($type) {
-		case 'said' {
-			$self->say(channel => $message->{channel}, body => "<$who> $body");
-		}
-		case 'emote' {
-			$self->say(channel => $message->{channel}, body => "* $who $body");
-		}
-	}
-}
-
-# Quote Search module
-sub hookSaidQuoteSearch {
-	my ($self, $message) = @_;
-
-	return unless ($message->{body} =~ /^!q (.+)$/);
-
-	my $search = $1;
-	my ($type, $who, $body);
-
-	# Search latest line, not by our bot and not starting with !
-	$dbsth{searchquote}->execute($message->{channel}, "%$search%", $self->pocoirc->nick_name);
-	$dbsth{searchquote}->bind_columns(\$type, \$who, \$body);
-	$dbsth{searchquote}->fetch;
-
-	return unless defined($who);
-
-	switch ($type) {
-		case 'said' {
-			$self->say(channel => $message->{channel}, body => "<$who> $body");
-		}
-		case 'emote' {
-			$self->say(channel => $message->{channel}, body => "* $who $body");
-		}
-	}
-}
-
-# Quote Switch
-sub hookSaidQuoteSwitch {
-	my ($self, $message) = @_;
-
-	return unless ($message->{body} =~ /^!sd (?:\"([^"]+)\"|(.+?)) (?:\"([^"]+)\"|(.+))$/);
-
-	my $word1 = $1 || $2;
-	my $word2 = $3 || $4;
-	my ($type, $who, $body);
-
-	# Search latest line, not by our bot and not starting with !
-	$dbsth{searchquotedouble}->execute($message->{channel}, "%$word1%", "%$word2%", $self->pocoirc->nick_name);
-	$dbsth{searchquotedouble}->bind_columns(\$type, \$who, \$body);
-	$dbsth{searchquotedouble}->fetch;
-
-	return unless defined($who);
-
-	$body =~ s/\Q$word1\E/\x1A/ig;
-	$body =~ s/\Q$word2/$word1\E/ig;
-	$body =~ s/\x1A/\Q$word2\E/ig;
-	$body =~ s/\\(.)/$1/g;
-
-	switch ($type) {
-		case 'said' {
-			$self->say(channel => $message->{channel}, body => "<$who> $body");
-		}
-		case 'emote' {
-			$self->say(channel => $message->{channel}, body => "* $who $body");
-		}
-	}
-}
-
-# URL title module
-# Prints the title when someone pastes an URL
-sub hookSaidURLTitle {
-	my ($self, $message) = @_;
-
-	return unless ($message->{body} =~ /((?:https?:\/\/|www\.)[-~=\\\/a-zA-Z0-9\.:_\?&%,#\+]+)/);
-	return if ($1 eq '');
-
-	my $title = title($1);
-	return unless defined ($title);
-
-	$self->say(channel => $message->{channel}, body => "[ $title ]");
-}
-
-# Listens to !pinkiebot and prints info about the bot
-sub hookSaidBotInfo {
-	my ($self, $message) = @_;
-
-	return unless ($message->{body} =~ /^!pinkiebot$/);
-
-	$self->say(channel => $message->{channel}, body => $botinfo);
-}
-
-# Oatmeal? Are you crazy?!?
-sub hookSaidOatmeal {
-	my ($self, $message) = @_;
-
-	return unless ($message->{body} =~ /oatmeal/i);
-
-	$self->say(channel => $message->{channel}, body => ($message->{who} . ": Oatmeal? Are you crazy?!?"));
-}
-
-# Dutch Oatmeal module, thanks to Quantum_bit for the idea :')
-sub hookSaidHavermout {
-	my ($self, $message) = @_;
-
-	return unless ($message->{body} =~ /havermout/i);
-
-	$self->say(channel => $message->{channel}, body => ($message->{who} . ": Havermout? Ben je gek geworden?!?"));
-}
-
-# Pinkie Police module
-# Upon noticing a hostile action, kick the user from the channel if one or
-# more of the following conditions are true:
-# 1) Hostile action against the bot,
-# 2) The current hour is uneven,
-# 3) It's friday,
-# 4) It's a full moon.
-# Why? Because I can, and because it's awesome.
-sub hookEmotePinkiePolice {
-	my ($self, $message) = @_;
-
-	# Listen for hostile action
-	return unless (
-		($message->{body} =~ /^(slaps|hits|punches|stabs|kicks|prods|tazes|rapes) (.+)/) &&
-		canKick($self, $message->{channel}, $message->{who})
-	);
-
-	# Always kick people who slap the bot
-	if ($2 eq $self->pocoirc->nick_name) {
-		$self->kick($message->{channel}, $message->{who}, 'Now why would you do that?');
-		return;
-	}
-
-	my @timedata = localtime(time());
-
-	# Check full moon. Perfect full moon is 180. Kick between 175-185.
-	my $lunar_phase = int(lunar_phase(DateTime->now));
-	if (($lunar_phase >= 175) && ($lunar_phase <= 185)) {
-		$self->kick($message->{channel}, $message->{who}, 'Hostile actions are not permitted during full moons.');
-		return;
-	}
-
-	# Check friday
-	if ($timedata[6] == 5) {
-		$self->kick($message->{channel}, $message->{who}, 'Hostile actions are not permitted on fridays.');
-		return;
-	}
-
-	# Check uneven hour
-	if ($timedata[2] % 2 == 1) {
-		$self->kick($message->{channel}, $message->{who}, 'Hostile actions are not permitted during uneven hours.');
-		return;
-	}
-}
-
-# Voices users who hug/lick/praise the bot
-sub hookEmotePinkieHug {
-	my ($self, $message) = @_;
-
-	# Listen for hug/lick/praise/cheer
-	return unless (
-		($message->{body} =~ /^(hugs|licks|praises|cheers at) (.+)/) && (
-			$bot->pocoirc->is_channel_operator($message->{channel}, $bot->pocoirc->nick_name) ||
-			$bot->pocoirc->is_channel_halfop($message->{channel}, $bot->pocoirc->nick_name)
-		)
-	);
-
-	# Address bot
-	return unless (lc($2) eq lc($bot->pocoirc->nick_name));
-
-	$self->mode("$message->{channel} +v $message->{who}");
-}
-
-# --- RSS Aggregrator functions ---
-
-sub rss_init_session {
-	my ($kernel, $heap, $session, $bot) = @_[ KERNEL, HEAP, SESSION, ARG0 ];
-
-	$heap->{bot} = $bot;
-	$heap->{rssagg} = POE::Component::RSSAggregator->new(
-		alias    => 'rssagg',
-		callback => $session->postback('handle_feed')
-	);
-
-	foreach my $feed ($cfg->val('rss', 'feed')) {
-		my $offset = rindex($feed, ' ');
-
-		my $name = substr($feed, 0, $offset);
-		my $url =  substr($feed, $offset + 1);
-
-		$kernel->post('rssagg', 'add_feed', {
-			url                 => $url,
-			name                => $name,
-			delay               => $cfg->val('rss', 'delay', '300'),
-			init_headlines_seen => 1
-		});
-	}
-}
-
-sub rss_handle_feed {
-	my ($kernel, $feed, $heap) = ( $_[KERNEL], $_[ARG1]->[0], $_[HEAP] );
-
-	$bot = $heap->{bot};
-
-	for my $headline ($feed->late_breaking_news) {
-		my $url;
-
-		if (defined($cfg->val('rss', 'bitly_username')) || ($cfg->val('rss', 'bitly_username') ne '')) {
-			$url = makeashorterlink($headline->url, $cfg->val('rss', 'bitly_username'), $cfg->val('rss', 'bitly_apikey'));
-		} else {
-			$url = $headline->url;
-		}
-
-		foreach my $channel (split(' ', $cfg->val('rss', 'channels'))) {
-			$bot->say(
-				channel => $channel,
-				body    => sprintf('[[ %s: %s - %s ]]', $feed->name, $headline->headline, $url),
-			);
-		}
-	}
-}
-
-# --- Helper functions ---
-
-sub secsToString {
-	my $secs = shift;
-	my $string = "";
-
-	$string .= sprintf("%dd ", (($secs / 86400)     )) if ($secs >= 86400);
-	$string .= sprintf("%dh ", (($secs /  3600) % 24)) if ($secs >=  3600);
-	$string .= sprintf("%dm ", (($secs /    60) % 60)) if ($secs >=    60);
-	$string .= sprintf("%ds ", (($secs        ) % 60)) if ($secs         );
-	$string .= "ago";
-
-	return $string;
-}
-
-sub canKick {
-	my ($bot, $channel, $who) = @_;
-
-	# Check if we have op or halfop. If we're halfop, check if the user isn't op
-	# since we can't kick him/her then.
-	return (
-		$bot->pocoirc->is_channel_operator($channel, $bot->pocoirc->nick_name) || (
-			$bot->pocoirc->is_channel_halfop($channel, $bot->pocoirc->nick_name) &&
-			!$bot->pocoirc->is_channel_operator($channel, $who)
-		)
-	);
-}
-
 # --- Create and start bot ---
 
-$bot = PinkieBot->new(
+print "Initializing bot\n";
+
+my $bot = PinkieBot->new(
 	server   => $cfg->val('irc', 'server'),
 	port     => $cfg->val('irc', 'port', '6667'),
 	channels => [split(' ', $cfg->val('irc', 'channels'))],
@@ -660,6 +66,335 @@ $bot = PinkieBot->new(
 	name     => ('PinkieBot v' . $version)
 );
 
+# moduleList holds an array of module names we have loaded. Iterating through
+# the modules hash for said gives us an infinite loop somehow, so we keep track
+# of them in this array instead.
+$bot->{moduleList} = ();
+$bot->{modules}    = {};
+
+$bot->{cfg} = $cfg;
+
+print "Creating database link\n";
+
+$bot->{db} = DBI->connect(sprintf('DBI:mysql:%s;host=%s', $bot->{cfg}->val('mysql', 'database'), $bot->{cfg}->val('mysql', 'host')), $bot->{cfg}->val('mysql', 'username'), $bot->{cfg}->val('mysql', 'password'), {'mysql_enable_utf8' => 1}) or die($DBI::errstr . "\n");
+$bot->{db}->do('SET NAMES utf8');
+
+if ($cfg->val('irc', 'autoload') ne '') {
+	foreach (split(' ', $cfg->val('irc', 'autoload'))) {
+		print "Auto-loading module '$_'...";
+
+		my $ret = $bot->loadModule($_);
+
+		if ($ret->{status} == 0) {
+			print " ERROR: {$ret->{string}}\n";
+		} else {
+			print " done\n";
+		}
+	}
+}
+
 print "Starting bot\n";
 
 $bot->run();
+
+# --- Overridden Bot::BasicBot methods ---
+
+sub connected {
+	my $self = shift;
+
+	print "Connected\n";
+
+	# NickServ auth
+	if ($self->{cfg}->val('irc', 'nickpass') ne '') {
+		print "Authenticating\n";
+		$self->say(
+			channel => 'nickserv',
+			body    => ('identify ' . $self->{cfg}->val('irc', 'nickpass'))
+		);
+	}
+
+	$self->processHooks('connected');
+}
+
+sub said        { $_[0]->processHooks('said'       , $_[1]); return; }
+sub emoted      { $_[0]->processHooks('emoted'     , $_[1]); return; }
+sub noticed     { $_[0]->processHooks('noticed'    , $_[1]); return; }
+sub chanjoin    { $_[0]->processHooks('chanjoin'   , $_[1]); return; }
+sub chanpart    { $_[0]->processHooks('chanpart'   , $_[1]); return; }
+sub topic       { $_[0]->processHooks('topic'      , $_[1]); return; }
+sub nick_change { $_[0]->processHooks('nick_change', ($_[1], $_[2])); return; }
+sub kicked      { $_[0]->processHooks('kicked'     , $_[1]); return; }
+sub userquit    { $_[0]->processHooks('userquit   ', $_[1]); return; }
+sub help        { return $botinfo; }
+
+# --- Bot Functions ---
+
+sub getAvailableModules {
+	my $self = shift;
+
+	my @availableModules = glob('modules/*.pm');
+	foreach (@availableModules) {
+		$_ =~ s/modules\/(.*)\.pm/$1/;
+	}
+
+	return @availableModules;
+}
+
+sub getLoadedModules {
+	my $self = shift;
+	return @{$self->{moduleList}};
+}
+
+sub getActiveModules {
+	my $self = shift;
+
+	my @activeModules;
+	foreach my $module (@{$self->{moduleList}}) {
+		next if ($self->{modules}->{$module}->{enabled} == 0);
+
+		push(@activeModules, $module);
+	}
+
+	return @activeModules;
+}
+
+sub loadModule {
+	my ($self, $module) = @_;
+	my $moduleKey = lc($module);
+
+	# Check if module already loaded
+	if ($self->{modules}->{$moduleKey}) {
+		return { status => 0, code => 0, string => "Module '$module' already loaded (try reloading)" };
+	}
+
+	# Check if module file exists
+	unless (-e './modules/' . $moduleKey . '.pm') {
+		return { status => 0, code => 1, string => "Module '$module' not found" };
+	}
+
+	my $modulePackage = ("PinkieBot::Module::" . ucfirst($module));
+
+	# Remove package from %INC if it exists so we don't get the cached version
+	delete $INC{'./modules/' . $moduleKey . '.pm'};
+
+	# Include file and set up object in an eval{} block so we can catch parse
+	# errors in module files
+	eval {
+		require('./modules/' . $moduleKey . '.pm');
+
+		$self->{modules}->{$moduleKey}->{object} = $modulePackage->new($self);
+		$self->{modules}->{$moduleKey}->{enabled} = 1;
+
+		push(@{$self->{moduleList}}, $moduleKey);
+	};
+
+	# Return error if eval{}; above failed
+	if ($@) {
+		return { status => 0, code => 2, string => $@ };
+	}
+
+	# Else return success
+	return { status => 1, code => -1, string => "Module '$module' loaded" };
+}
+
+sub reloadModule {
+	my ($self, $module) = @_;
+
+	$self->unloadModule($module);
+	$self->loadModule($module);
+
+	return { status => 1, code => -1, string => "Module '$module' reloaded" };
+}
+
+sub unloadModule {
+	my ($self, $module) = @_;
+	my $moduleKey = lc($module);
+
+	unless ($self->{modules}->{$moduleKey}) {
+		return { status => 0, code => 0, string => "Module '$module' not loaded" };
+	}
+
+	delete($self->{modules}->{$moduleKey});
+	@{$self->{moduleList}} = grep { $_ ne $moduleKey } @{$self->{moduleList}};
+
+	return { status => 1, code => -1, string => "Module '$module' unloaded" };
+}
+
+sub enableModule {
+	my ($self, $module) = @_;
+	my $moduleKey = lc($module);
+
+	unless ($self->{modules}->{$moduleKey}) {
+		return { status => 0, code => 0, string => "Module '$module' not loaded" };
+	}
+
+	if ($self->{modules}->{$moduleKey}->{enabled} == 1) {
+		return { status => 0, code => 1, string => "Module '$module' already enabled" };
+	}
+
+	$self->{modules}->{$moduleKey}->{enabled} = 1;
+
+	return { status => 1, code => -1, string => "Module '$module' enabled" };
+}
+
+sub disableModule {
+	my ($self, $module) = @_;
+	my $moduleKey = lc($module);
+
+	unless ($self->{modules}->{$moduleKey}) {
+		return { status => 0, code => 0, string => "Module '$module' not loaded" };
+	}
+
+	if ($self->{modules}->{$moduleKey}->{enabled} == 0) {
+		return { status => 0, code => 1, string => "Module '$module' already disabled" };
+	}
+
+	$self->{modules}->{$moduleKey}->{enabled} = 0;
+
+	return { status => 1, code => -1, string => "Module '$module' disabled" };
+}
+
+sub registerHook {
+	my ($self, $module, $type, $function) = @_;
+
+	push(@{$self->{modules}->{$module}->{hooks}->{$type}}, $function);
+
+	return { status => 1, code => -1, string => "Hook with type '$type' for module '$module' registered" };
+}
+
+sub unregisterHook {
+	my ($self, $module, $type, $function) = @_;
+
+	unless (grep($function, @{$self->{modules}->{$module}->{hooks}->{$type}})) {
+		return { status => 0, code => 0, string => "Hook with type '$type' for module '$module' does not exist" };
+	}
+
+	@{$self->{modules}->{$module}->{hooks}->{$type}} = grep { $_ != $function } @{$self->{modules}->{$module}->{hooks}->{$type}};
+
+	return { status => 1, code => -1, string => "Hook with type '$type' for module '$module' unregistered" };
+}
+
+sub unregisterHooks {
+	my ($self, $module, $type) = @_;
+
+	$self->{modules}->{$module}->{hooks}->{$type} = ();
+
+	return { status => 1, code => -1, string => "All hooks with type '$type' for module '$module' unregistered" };
+}
+
+sub getHooks {
+	my ($self, $module, $type) = @_;
+
+	return @{$self->{modules}->{$module}->{hooks}->{$type}};
+}
+
+sub hookRegistered {
+	my ($self, $module, $type) = @_;
+
+	return @{$self->{modules}->{$module}->{hooks}->{$type}};
+}
+
+sub processHooks {
+	my ($self, $type, $data) = @_;
+
+	while (my ($module, $moduleHash) = each(%{$self->{modules}})) {
+		next if ($moduleHash->{enabled} == 0);
+
+		foreach (@{$moduleHash->{hooks}->{$type}}) {
+			eval { $self->$_($data); };
+
+			if ($@) {
+				$self->say(
+					who     => $data->{who},
+					channel => $data->{channel},
+					body    => "\x02Module '$module' encountered an error and will be unloaded:\x0F $@",
+					address => $data->{address}
+				);
+
+				$self->unloadModule($module);
+			}
+		}
+	}
+}
+
+sub moduleLoaded {
+	my ($self, $module) = @_;
+	return (exists($self->{modules}->{lc($module)}) ? 1 : 0);
+}
+
+sub moduleActive {
+	my ($self, $module) = @_;
+	return (($self->moduleLoaded($module) && ($self->{modules}->{lc($module)}->{enabled} == 1)) ? 1 : 0);
+}
+
+sub module {
+	my ($self, $module) = @_;
+
+	unless (moduleLoaded($module)) {
+		return undef;
+	}
+
+	return $self->{modules}->{lc($module)}->{object};
+}
+
+# --- POE extensions ---
+
+# Register irc_invite event to our handle_invite function
+sub start_state {
+	my ($self, $kernel, $session) = @_[OBJECT, KERNEL, SESSION];
+	my $ret = $self->SUPER::start_state($self, $kernel, $session);
+	$kernel->state('irc_invite', $self, 'handle_invite');
+	return $ret;
+}
+
+# Handle IRC INVITE commands through hooks
+sub handle_invite {
+	my ($self, $inviter, $channel, $key) = @_[OBJECT, ARG0, ARG1];
+	$self->processHooks('invited', {inviter => $inviter, channel => $channel});
+}
+
+# Join IRC channel function
+sub join_channel {
+	my ($self, $channel, $key) = @_;
+	$key = '' unless defined($key);
+	$poe_kernel->post($self->{IRCNAME}, 'join', $channel, $key);
+}
+
+# Leave IRC channel function
+sub leave_channel {
+	my ($self, $channel, $part_msg) = @_;
+	$part_msg ||= ('PinkieBot v' . $version);
+	$poe_kernel->post($self->{IRCNAME}, 'part', $channel, $part_msg);
+}
+
+# --- PinkieBot::Module ---
+
+package PinkieBot::Module;
+
+use warnings;
+use strict;
+
+no warnings 'redefine';
+
+sub new {
+	my ($class, $bot) = @_;
+
+	my $self = {bot => $bot};
+	bless($self, $class);
+
+	$self->init($bot);
+
+	return $self;
+}
+
+sub registerHook {
+	my ($self, $type, $code) = @_;
+
+	my $module = ref($self);
+	$module =~ s/PinkieBot::Module::(.*)/$1/;
+	$module = lc($module);
+
+	$self->{bot}->registerHook($module, $type, $code);
+}
+
+sub init { undef }
