@@ -30,6 +30,7 @@ sub init {
 	$self->registerHook('said', \&handleSaidModuleLoaded);
 	$self->registerHook('said', \&handleSaidModuleActive);
 	$self->registerHook('said', \&handleSaidInfo);
+	$self->registerHook('said', \&handleSaidUpdate);
 	$self->registerHook('invited', \&handleInvited);
 }
 
@@ -84,7 +85,7 @@ sub handleSaidListActive {
 sub handleSaidLoadModule {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^!load ([^ ]+)(?: (.*))?/);
+	return unless ($message->{body} =~ /^!load ([^ ]+)(?: (.+))?/);
 
 	# Check authorization
 	return unless (checkAuthorization($bot, $message, 9));
@@ -102,7 +103,7 @@ sub handleSaidLoadModule {
 sub handleSaidUnloadModule {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^!unload (.*)/);
+	return unless ($message->{body} =~ /^!unload (.+)/);
 
 	# Check authorization
 	return unless (checkAuthorization($bot, $message, 9));
@@ -120,7 +121,7 @@ sub handleSaidUnloadModule {
 sub handleSaidReloadModule {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^!reload ([^ ]+)(?: (.*))?/);
+	return unless ($message->{body} =~ /^!reload ([^ ]+)(?: (.+))?/);
 
 	# Check authorization
 	return unless (checkAuthorization($bot, $message, 9));
@@ -138,7 +139,7 @@ sub handleSaidReloadModule {
 sub handleSaidEnableModule {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^!enable (.*)/);
+	return unless ($message->{body} =~ /^!enable (.+)/);
 
 	# Check authorization
 	return unless (checkAuthorization($bot, $message, 9));
@@ -156,7 +157,7 @@ sub handleSaidEnableModule {
 sub handleSaidDisableModule {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^!disable (.*)/);
+	return unless ($message->{body} =~ /^!disable (.+)/);
 
 	# Check authorization
 	return unless (checkAuthorization($bot, $message, 9));
@@ -174,7 +175,7 @@ sub handleSaidDisableModule {
 sub handleSaidModuleLoaded {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^!loaded (.*)/);
+	return unless ($message->{body} =~ /^!loaded (.+)/);
 
 	# Check authorization
 	return unless (checkAuthorization($bot, $message, 9));
@@ -212,6 +213,25 @@ sub handleSaidInfo {
 		who     => $message->{who},
 		channel => $message->{channel},
 		body    => $bot->help(),
+		address => $message->{address}
+	);
+}
+
+sub handleSaidUpdate {
+	my ($bot, $message) = @_;
+
+	return unless ($message->{body} =~ /^!update/);
+
+	# Check authorization
+	return unless (checkAuthorization($bot, $message, 9));
+
+	# Update from Mercurial
+	@output = `hg pull && hg up`;
+
+	$bot->notice(
+		who     => $message->{who},
+		channel => $message->{channel},
+		body    => join("\n", @output),
 		address => $message->{address}
 	);
 }
