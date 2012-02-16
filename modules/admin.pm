@@ -48,12 +48,10 @@ sub handleInvited {
 sub checkPerms {
 	my $host = shift;
 
-	return (
-		($host =~ /WaveHack\@wavehack\.net$/) ||
-		($host =~ /vanillabea\@Sexy\.Stallion$/) ||
-		($host =~ /hydrazine\@rainbow\.factory$/) ||
-		($host =~ /nido\@tgpgrzxyzd\.foxserver\.be$/)
-	) ? 1 : 0;
+	# Add your own permission checking routine here. Return 1 on success, return
+	# 0 on failure.
+
+	return 1;
 }
 
 1;

@@ -5,7 +5,7 @@ It's based off Bot::Basicbot with certain additions (irc invite and mode
 events).
 
 Influenced by Pinkie Pie from the new My Little Pony show with certain
-catchphrases and random actions. She's been tailored specifically for an IRC
+catchphrases and random actions, she's been tailored specifically for an IRC
 channel I'm frequently visiting and is guaranteed for some late night laughs
 after a few beers.
 
@@ -15,7 +15,7 @@ hooks (like said, emoted, chanjoin, etc). Module loading is easy: Just stick the
 right .pm file in modules/, make sure that any needed .sql schema files are
 present in schemas/ and load the module! Using the default admin module, this is
 through saying !load module. If there's any parse errors, PinkieBot will report
-them and not break the mane thread.
+them and not crash the mane thread.
 
 MySQL database and pinkiebot.ini configuration file is hardcoded into PinkieBot
 and might be moved to modules on a later date.

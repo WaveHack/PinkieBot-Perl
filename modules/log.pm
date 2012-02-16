@@ -1,9 +1,6 @@
 package PinkieBot::Module::Log;
 use base 'PinkieBot::Module';
 
-use DBI;
-use DateTime;
-
 my %dbhsth;
 
 sub init {
