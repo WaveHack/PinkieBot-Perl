@@ -50,10 +50,12 @@ sub handleSaidQuoteSearch {
 			);
 		}
 		case 'emote' {
+			$bot->say(
 				who     => $message->{who},
 				channel => $message->{channel},
 				body    => "* $who $body",
 				address => $message->{address}
+			);
 		}
 	}
 }
@@ -94,10 +96,12 @@ sub handleSaidQuoteReplace {
 			);
 		}
 		case 'emote' {
+			$bot->say(
 				who     => $message->{who},
 				channel => $message->{channel},
 				body    => "* $who $body",
 				address => $message->{address}
+			);
 		}
 	}
 }
@@ -136,10 +140,12 @@ sub handleSaidQuoteSwitch {
 			);
 		}
 		case 'emote' {
+			$bot->say(
 				who     => $message->{who},
 				channel => $message->{channel},
 				body    => "* $who $body",
 				address => $message->{address}
+			);
 		}
 	}
 }
