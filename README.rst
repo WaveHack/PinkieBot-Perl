@@ -1,90 +1,59 @@
 About PinkieBot
-===============
+###############
 PinkieBot is yet another IRC bot and my attempt at learning the basics of Perl.
+It's based off Bot::Basicbot with certain additions (irc invite and mode
+events).
 
 Influenced by Pinkie Pie from the new My Little Pony show with certain
-catchphrases and random actions, she's been tailored specifically for an IRC
+catchphrases and random actions. She's been tailored specifically for an IRC
 channel I'm frequently visiting and is guaranteed for some late night laughs
 after a few beers.
 
-PinkieBot is built with function hooks to IRC events (said, emote, join, etc)
-called modules. These are pretty basic and there's currently no way to disable,
-re-enable or adjust config of said modules without modifying the source code,
-yet.
+PinkieBot is modularly built (since version 2.x.x) and using custom Perl Module
+files in modules/\*.pm. Modules are able to register their own functions to IRC
+hooks (like said, emoted, chanjoin, etc). Module loading is easy: Just stick the
+right .pm file in modules/, make sure that any needed .sql schema files are
+present in schemas/ and load the module! Using the default admin module, this is
+through saying !load module. If there's any parse errors, PinkieBot will report
+them and not break the mane thread.
 
-PinkieBot uses from version 1.2 on a MySQL database for storing data (see
-pinkiebot.sql). Support for SQLite might be readded in the future.
+MySQL database and pinkiebot.ini configuration file is hardcoded into PinkieBot
+and might be moved to modules on a later date.
 
-Commands
---------
-**Karma**
-::
+**Note**: PinkieBot is currenlty in progress in old modules being ported over.
 
-    subject++
-    subject--
+Modules
+=======
+Admin
+-----
+Default administration module for PinkieBot. Do not unload it unless you want to
+restart the whole PinkieBot process.
 
-*Example*::
+**Commands**:
 
-    <Person> PHP++
-    <PinkieBot> Karma for PHP is now 4.
+*!list available*
+    Lists all available modules. More specifically: modules/\*.pm files.
+*!list loaded*
+    Lists all loaded modules. Loaded modules are not neccessarily active.
+*!list active*
+    Lists all modules who are both loaded and active.
+*!load module [args]*
+    Loads a module with optional arguments.
+*!unload module*
+    Unloads a module.
+*!reload module [args]*
+    Reloads a module with optional arguments.
+*!enable module*
+    Enables a loaded and inactive module.
+*!disable module*
+    Disables a loaded and active module.
+*!loaded module*
+    Checks whether a module is loaded.
+*!active module*
+    Checks whether a module is active.
+*!pinkiebot*
+    Prints some info about the bot.
 
-**Seen**
-::
-
-    !seen name
-
-*Example*::
-
-    <PersonA> !seen personb
-    <PinkieBot> PersonB was last seen in #channel 5m 36s ago saying "brb".
-
-**Quote Replace**
-
-Searches for the latest said or emote containing search, then
-echoing the said or emote with search and replace. !s replaces the first
-occurence. !ss replaces all occurences.
-::
-
-    !s search replace
-    !ss search replace
-
-*Example*::
-
-    <PersonA> foo bar
-    <PersonB> !s bar foobar
-    <PinkieBot> <PersonA> foo foobar
-
-**Quote Search**
-::
-
-    !q search
-
-*Example*::
-
-    <PersonA> !q youtube
-    <PinkieBot> <RandomGuy> Hey guise check this: http://www.youtube.com/watch?v=oHg5SJYRHA0
-
-**Quote Switch**
-
-Switches around two words in the same sentence.
-::
-
-    !sd word1 word2
-
-*Example*::
-
-    <PersonA> foo bar
-    <PersonB> !sd foo bar
-    <PinkieBot> <PersonA> bar foo
-
-Besides these explicit commands there are some more features in it:
- - Recording all activity in raw format to the database,
- - Slaps and corrects any neighsayer who misspell the words 'anypony', 'nopony'
-   'everypony' and 'somepony'.
- - Doing her famous 'oatmeal'-quote from the show when someone types that word.
-   The Dutch variant ('havermout') is also available.
- - Posting URL title if someone links an URL in the chat. This does not work
-   with HTTPS links, however.
- - Punishes hostile emotes towards people on certain periods by kicking them if
-   the bot is operator or half-operator.
- - Automatically voices people who hug the bot.
+Log
+---
+Records all raw activity in the database in the 'activity' table.

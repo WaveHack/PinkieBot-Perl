@@ -282,10 +282,11 @@ sub disableModule {
 
 # Registers code to be executed on certain IRC events of type $type. Valid types
 # are: connected, said, emoted, noticed, chanjoin, chanpart, topic, nick_change,
-# kicked, userquit and invited. See CPAN pages for Bot::BasicBot for parameter
-# details and general usage. Event invited isn't in Bot::BasicBot and is built
-# in here. Code hooks are usually registered through module's init() function,
-# but can theoretically be called on the fly from wherever inside a module.
+# kicked, userquit, invited andmode. See CPAN pages for Bot::BasicBot for
+# parameter details and general usage. Event invited isn't in Bot::BasicBot and
+# is built in here. Code hooks are usually registered through module's init()
+# function,  but can theoretically be called on the fly from wherever inside a
+# module.
 sub registerHook {
 	my ($self, $module, $type, $function) = @_;
 
@@ -450,6 +451,8 @@ sub new {
 	return $self;
 }
 
+# Handy function for registering hook. Saves the hassle of obtaining the module
+# name from the module instance.
 sub registerHook {
 	my ($self, $type, $code) = @_;
 
@@ -460,6 +463,7 @@ sub registerHook {
 	$self->{bot}->registerHook($module, $type, $code);
 }
 
+# Creates MySQL table $table if not exists and if schemas/$table.sql file exists
 sub createTableIfNotExists {
 	my ($self, $table, $message) = @_;
 
