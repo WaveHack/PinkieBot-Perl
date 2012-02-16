@@ -377,7 +377,7 @@ sub moduleActive {
 sub module {
 	my ($self, $module) = @_;
 
-	unless (moduleLoaded($module)) {
+	unless ($self->moduleLoaded($module)) {
 		return undef;
 	}
 
