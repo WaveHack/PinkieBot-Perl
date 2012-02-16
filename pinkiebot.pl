@@ -22,7 +22,7 @@ use DBI;
 use warnings;
 use strict;
 
-my $version = '2.0.0';
+my $version = '2.0.1';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack. See https://bitbucket.org/WaveHack/pinkiebot/ for more info, command usage and source code.');
 
 # --- Initialization ---
@@ -171,7 +171,11 @@ sub getActiveModules {
 # errors (Perl ftw!) so the mane thread doesn't break when reloading broken
 # module files.
 sub loadModule {
-	my ($self, $module) = @_;
+	my $self = shift;
+	my $module = shift;
+	my $message = shift;
+	my $args = join(' ', @_);
+
 	my $moduleKey = lc($module);
 
 	# Check if module already loaded
@@ -195,7 +199,7 @@ sub loadModule {
 	eval {
 		require('./modules/' . $moduleKey . '.pm');
 
-		$self->{modules}->{$moduleKey}->{object} = $modulePackage->new($self);
+		$self->{modules}->{$moduleKey}->{object} = $modulePackage->new($self, $message, $args);
 		$self->{modules}->{$moduleKey}->{enabled} = 1;
 
 		push(@{$self->{moduleList}}, $moduleKey);
@@ -214,10 +218,10 @@ sub loadModule {
 # Unloads a module (if loaded) and reloads it. Note that non-stored variables
 # are not kept and the whole init()itialization function is called again.
 sub reloadModule {
-	my ($self, $module) = @_;
+	my ($self, $module, $message, $args) = @_;
 
 	$self->unloadModule($module);
-	$self->loadModule($module);
+	$self->loadModule($module, $message, $args);
 
 	return { status => 1, code => -1, string => "Module '$module' reloaded" };
 }
@@ -343,7 +347,7 @@ sub processHooks {
 
 			# Complain and unload module on error
 			if ($@) {
-				$self->say(
+				$self->notice(
 					who     => $data->{who},
 					channel => $data->{channel},
 					body    => "\x02Module '$module' encountered an error and will be unloaded:\x0F $@",
@@ -381,18 +385,30 @@ sub module {
 
 # --- POE extensions ---
 
-# Register irc_invite event to our handle_invite function
+# Register additional IRC events
 sub start_state {
 	my ($self, $kernel, $session) = @_[OBJECT, KERNEL, SESSION];
 	my $ret = $self->SUPER::start_state($self, $kernel, $session);
 	$kernel->state('irc_invite', $self, 'handle_invite');
+	$kernel->state('irc_mode', $self, 'handle_mode');
 	return $ret;
 }
 
-# Handle IRC INVITE commands through hooks
+# Process IRC INVITE events
 sub handle_invite {
 	my ($self, $inviter, $channel, $key) = @_[OBJECT, ARG0, ARG1];
 	$self->processHooks('invited', {inviter => $inviter, channel => $channel});
+}
+
+# Process IRC MODE events
+sub handle_mode {
+	my ($self, $source, $channel, $mode, @args) = @_[OBJECT, ARG0, ARG1, ARG2, ARG3 .. $#_];
+	$self->processHooks('mode', {
+		source => $source,
+		channel => $channel,
+		mode => $mode,
+		args => join(' ', @args)
+	});
 }
 
 # Join IRC channel function
@@ -424,12 +440,12 @@ use strict;
 no warnings 'redefine';
 
 sub new {
-	my ($class, $bot) = @_;
+	my ($class, $bot, $message, $args) = @_;
 
 	my $self = {bot => $bot};
 	bless($self, $class);
 
-	$self->init($bot);
+	$self->init($bot, $message, $args);
 
 	return $self;
 }
@@ -442,6 +458,43 @@ sub registerHook {
 	$module = lc($module);
 
 	$self->{bot}->registerHook($module, $type, $code);
+}
+
+sub createTableIfNotExists {
+	my ($self, $table, $message) = @_;
+
+	# Check if table exists
+	my $rows = $self->{bot}->{db}->do("SELECT table_name FROM information_schema.tables WHERE table_schema = '" . $self->{bot}->{cfg}->val('mysql', 'database') . "' AND table_name = '$table';");
+	unless ($rows == 1) {
+		# If file doesn't exist
+		unless (-e "schemas/$table.sql") {
+			# Complain
+			$self->{bot}->say(
+				who     => $message->{who},
+				channel => $message->{channel},
+				body    => "Error: Table schema 'schemas/$table.sql' doesn't exist. Unloading module.",
+				address => $message->{address}
+			);
+
+			return;
+		}
+
+		# Read SQL file to string
+		open(FH, "schemas/$table.sql");
+		my $sql = join(' ', <FH>);
+		close FH;
+
+		# Create table
+		$self->{bot}->{db}->do($sql);
+
+		# Report
+		$self->{bot}->say(
+			who     => $message->{who},
+			channel => $message->{channel},
+			body    => "MySQL table '$table' created",
+			address => $message->{address}
+		);
+	}
 }
 
 sub init { undef }

@@ -2,7 +2,7 @@ package PinkieBot::Module::Admin;
 use base 'PinkieBot::Module';
 
 sub init {
-	my $self = shift;
+	my ($self, $bot, $message, $args) = @_;
 
 	$self->registerHook('said', \&handleSaid);
 	$self->registerHook('invited', \&handleInvited);
@@ -18,9 +18,9 @@ sub handleSaid {
 	if ($message->{body} =~ /^!list available$/) { $ret = ('Available modules: ' . join(', ', sort($bot->getAvailableModules()))); }
 	if ($message->{body} =~ /^!list loaded$/)    { $ret = ('Loaded modules: ' . join(', ', sort($bot->getLoadedModules()))); }
 	if ($message->{body} =~ /^!list active$/)    { $ret = ('Active modules: ' . join(', ', sort($bot->getActiveModules()))); }
-	if ($message->{body} =~ /^!load (.*)/)       { $ret = $bot->loadModule($1); }
+	if ($message->{body} =~ /^!load ([^\s]*) ?(.*)/)       { $ret = $bot->loadModule($1, $message, $2); }
 	if ($message->{body} =~ /^!unload (.*)/)     { $ret = $bot->unloadModule($1); }
-	if ($message->{body} =~ /^!reload (.*)/)     { $ret = $bot->reloadModule($1); }
+	if ($message->{body} =~ /^!reload ([^\s]*) ?(.*)/)     { $ret = $bot->reloadModule($1, $message, $2); }
 	if ($message->{body} =~ /^!enable (.*)/)     { $ret = $bot->enableModule($1); }
 	if ($message->{body} =~ /^!disable (.*)/)    { $ret = $bot->disableModule($1); }
 	if ($message->{body} =~ /^!loaded (.*)/)     { $ret = $bot->moduleLoaded($1); }
@@ -32,7 +32,7 @@ sub handleSaid {
 	$bot->say(
 		who     => $message->{who},
 		channel => $message->{channel},
-		body    => ((ref(\$ret) eq "SCALAR") ? $ret : "$ret->{string} [S:$ret->{status} C:$ret->{code}]"),
+		body    => ((ref(\$ret) eq "SCALAR") ? $ret : "$ret->{string} [Status: $ret->{status}, Code: $ret->{code}]"),
 		address => $message->{address}
 	);
 }
