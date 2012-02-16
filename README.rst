@@ -57,3 +57,28 @@ restart the whole PinkieBot process.
 Log
 ---
 Records all raw activity in the database in the 'activity' table.
+
+Quoter
+------
+Module to search and replace quotes people said in the same IRC channel.
+
+*!s search replace*
+    Searches for the latest line where $search is in, and replaces the first
+    occurrence with $replace.
+*!ss search replace*
+    Searches for the latest line where $search is in, and replaces all
+    occurrences with $replace.
+*!sd word1 word2*
+    Searches for the latest line where both $word1 and $word2 are in and
+    switches them around.
+*s/search/replace/[modifiers]*
+    Regex replace. See your friendly neighbourhood Perl Regular Expression
+    manual for usage. Supported optional modifiers are 'g' and 'i'.
+
+Seen
+----
+Reports when and where a person has been last seen by the bot.
+
+**Commands**:
+
+*!seen person*
