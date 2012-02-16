@@ -8,6 +8,16 @@ my %dbsth;
 sub init {
 	my ($self, $bot, $message, $args) = @_;
 
+	# Check if module Log is loaded
+	if (!$bot->moduleActive('log')) {
+		$bot->say(
+			who     => $message->{who},
+			channel => $message->{channel},
+			body    => "\x02Warning\x0F: Module 'Log' is not loaded or disabled and this module sort of depends on it. Type !load Log to enable module 'Log' or suffer the consequences.",
+			address => $message->{address}
+		);
+	}
+
 	# Create needed tables if needed
 	$self->createTableIfNotExists('activity', $message);
 
