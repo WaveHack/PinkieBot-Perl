@@ -230,9 +230,7 @@ sub handleSaidUpdate {
 
 	$bot->notice(
 		who     => $message->{who},
-		channel => $message->{channel},
 		body    => join("\n", @output),
-		address => $message->{address}
 	);
 }
 
@@ -254,9 +252,7 @@ sub checkAuthorization {
 	unless ($bot->module('auth')->authorizationLevel($message->{raw_nick}) >= $level) {
 		$bot->notice(
 			who     => $message->{who},
-			channel => $message->{channel},
 			body    => 'You are not authorized to perform that command.',
-			address => $message->{address}
 		);
 
 		return 0;
