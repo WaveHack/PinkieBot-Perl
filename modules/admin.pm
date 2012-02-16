@@ -228,7 +228,7 @@ sub handleSaidUpdate {
 	# Update from Mercurial
 	@output = `hg pull && hg up`;
 
-	$bot->notice(
+	$bot->say(
 		who     => $message->{who},
 		channel => 'msg',
 		body    => join("\n", @output),
@@ -252,11 +252,11 @@ sub checkAuthorization {
 	return 1 unless ($authLoaded);
 
 	unless ($bot->module('auth')->authorizationLevel($message->{raw_nick}) >= $level) {
-		$bot->notice(
+		$bot->say(
 			who     => $message->{who},
 			channel => 'msg',
 			body    => 'You are not authorized to perform that command.',
-			address => 'msg'
+			address => 'msg',
 		);
 
 		return 0;
