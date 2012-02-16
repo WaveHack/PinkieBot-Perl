@@ -476,6 +476,14 @@ sub createTableIfNotExists {
 				address => $message->{address}
 			);
 
+			# Get module name
+			my $module = ref($self);
+			$module =~ s/PinkieBot::Module::(.*)/$1/;
+			$module = lc($module);
+
+			# And unload it
+			$self->{bot}->unloadModule($module);
+
 			return;
 		}
 
