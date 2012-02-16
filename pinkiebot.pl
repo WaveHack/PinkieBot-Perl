@@ -22,7 +22,7 @@ use DBI;
 use warnings;
 use strict;
 
-my $version = '2.0.1';
+my $version = '2.0.2';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack. See https://bitbucket.org/WaveHack/pinkiebot/ for more info, command usage and source code.');
 
 # --- Initialization ---
