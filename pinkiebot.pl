@@ -178,7 +178,7 @@ sub loadModule {
 	my $self = shift;
 	my $module = shift;
 	my $message = shift;
-	my $args = (defined(@_) ? join(' ', @_) : '');
+	my $args = (exists($_[0]) ? join(' ', @_) : '');
 
 	my $moduleKey = lc($module);
 
@@ -225,7 +225,7 @@ sub reloadModule {
 	my $self = shift;
 	my $module = shift;
 	my $message = shift;
-	my $args = (defined(@_) ? join(' ', @_) : '');
+	my $args = (exists($_[0]) ? join(' ', @_) : '');
 
 	$self->unloadModule($module);
 	return $self->loadModule($module, $message, $args);
