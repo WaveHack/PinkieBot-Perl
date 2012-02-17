@@ -166,7 +166,7 @@ sub handleSaidQuoteSwitch {
 sub handleSaidQuoteRegex {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /s\/([^\/]+)\/([^\/]+)\/([gi]*)/);
+	return unless ($message->{body} =~ /^s\/([^\/]+)\/([^\/]+)\/([gi]*)/);
 
 	my $search = $1;
 	my $replace = $2;
