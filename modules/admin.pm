@@ -323,7 +323,7 @@ sub checkAuthorization {
 		$bot->say(
 			who     => $message->{who},
 			channel => 'msg',
-			body    => "You are not authorized to perform that command. Need level $level, have level $authorizationLevel."),
+			body    => "You are not authorized to perform that command. Need level $level, have level $authorizationLevel.",
 			address => 'msg'
 		);
 
