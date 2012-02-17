@@ -26,7 +26,7 @@ use DBI;
 use warnings;
 use strict;
 
-my $version = '2.0.3';
+my $version = '2.0.4';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack. See https://bitbucket.org/WaveHack/pinkiebot/ for more info, command usage and source code.');
 
 # --- Initialization ---
@@ -228,7 +228,7 @@ sub reloadModule {
 	my $args = (defined(@_) ? join(' ', @_) : '');
 
 	$self->unloadModule($module);
-	return $ret = $self->loadModule($module, $message, $args);
+	return $self->loadModule($module, $message, $args);
 }
 
 # Unloads a module from memory.
