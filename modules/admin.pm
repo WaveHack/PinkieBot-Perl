@@ -37,7 +37,7 @@ sub init {
 sub handleSaidListAvailable {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^!list available$/);
+	return unless ($message->{body} eq '!list available');
 
 	# Check authorization
 	return unless (checkAuthorization($bot, $message, 9));
@@ -53,7 +53,7 @@ sub handleSaidListAvailable {
 sub handleSaidListLoaded {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^!list loaded$/);
+	return unless ($message->{body} eq '!list loaded');
 
 	# Check authorization
 	return unless (checkAuthorization($bot, $message, 9));
@@ -69,7 +69,7 @@ sub handleSaidListLoaded {
 sub handleSaidListActive {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^!list active$/);
+	return unless ($message->{body} eq '!list active');
 
 	# Check authorization
 	return unless (checkAuthorization($bot, $message, 9));
@@ -207,7 +207,7 @@ sub handleSaidModuleActive {
 sub handleSaidInfo {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^!pinkiebot$/);
+	return unless ($message->{body} eq '!pinkiebot');
 
 	$bot->say(
 		who     => $message->{who},
@@ -220,7 +220,7 @@ sub handleSaidInfo {
 sub handleSaidUpdate {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^!update/);
+	return unless ($message->{body} eq '!update');
 
 	# Check authorization
 	return unless (checkAuthorization($bot, $message, 9));
@@ -256,7 +256,7 @@ sub checkAuthorization {
 			who     => $message->{who},
 			channel => 'msg',
 			body    => 'You are not authorized to perform that command.',
-			address => 'msg',
+			address => 'msg'
 		);
 
 		return 0;
