@@ -26,13 +26,23 @@ sub init {
 	my ($self, $bot, $message, $args) = @_;
 
 	# Check if module Log is loaded
-	if (!$bot->moduleActive('log')) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "\x02Warning\x0F: Module 'Log' is not loaded or disabled and this module sort of depends on it. Type !load Log to enable module 'Log' or suffer the consequences.",
-			address => $message->{address}
-		);
+	if (!$bot->moduleLoaded('log')) {
+		# If $message is defined, we're calling it from IRC. Else it's from
+		# autoloading. Don't try to say() command there since we're obviously
+		# not connected to IRC yet.
+		if (defined($message)) {
+			$bot->say(
+				who     => $message->{who},
+				channel => $message->{channel},
+				body    => "\x02Warning\x0F: Module 'Log' is not loaded or disabled and this module sort of depends on it. Type !load Log to enable module 'Log' or suffer the consequences.",
+				address => $message->{address}
+			);
+
+		# Autoload, print to CLI only
+		} else {
+			print "Warning: Module 'Log' is not loaded or disabled and this module sort of depends\n"
+			    , "on it. Type !load Log to enable module 'Log' or suffer the consequences.\n";
+		}
 	}
 
 	# Create needed tables if needed

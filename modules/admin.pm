@@ -25,12 +25,22 @@ sub init {
 
 	# Check if module Auth is loaded
 	if (!$bot->moduleLoaded('auth')) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "\x02Warning\x0F: Module 'Auth' is not loaded or disabled and this module sort of depends on it. Anyone can control the bot without the 'Auth' module!.",
-			address => $message->{address}
-		);
+		# If $message is defined, we're calling it from IRC. Else it's from
+		# autoloading. Don't try to say() command there since we're obviously
+		# not connected to IRC yet.
+		if (defined($message)) {
+			$bot->say(
+				who     => $message->{who},
+				channel => $message->{channel},
+				body    => "\x02Warning\x0F: Module 'Auth' is not loaded or disabled and this module sort of depends on it. Anyone can control the bot without the 'Auth' module!.",
+				address => $message->{address}
+			);
+
+		# Autoload, print to CLI only
+		} else {
+			print "Warning: Module 'Auth' is not loaded or disabled and this module sort of depends\n"
+			    , "on it. Anyone can control the bot without the 'Auth' module!.\n";
+		}
 
 		$authLoaded = 0;
 	}
@@ -134,8 +144,6 @@ sub handleSaidUnloadModule {
 			body    => "$message->{who}: Cannot unload Admin module! How else would you control me?!",
 			address => $message->{address}
 		);
-
-		sleep(2);
 
 		$bot->emote(
 			who     => $message->{who},
