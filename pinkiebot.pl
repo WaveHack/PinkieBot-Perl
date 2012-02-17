@@ -178,7 +178,7 @@ sub loadModule {
 	my $self = shift;
 	my $module = shift;
 	my $message = shift;
-	my $args = (exists($_[0]) ? join(' ', @_) : '');
+	my $args = (defined($_[0]) ? join(' ', @_) : '');
 
 	my $moduleKey = lc($module);
 
@@ -225,7 +225,7 @@ sub reloadModule {
 	my $self = shift;
 	my $module = shift;
 	my $message = shift;
-	my $args = (exists($_[0]) ? join(' ', @_) : '');
+	my $args = (defined($_[0]) ? join(' ', @_) : '');
 
 	$self->unloadModule($module);
 	return $self->loadModule($module, $message, $args);
@@ -478,12 +478,20 @@ sub createTableIfNotExists {
 		# If file doesn't exist
 		unless (-e "schemas/$table.sql") {
 			# Complain
-			$self->{bot}->say(
-				who     => $message->{who},
-				channel => $message->{channel},
-				body    => "Error: Table schema 'schemas/$table.sql' doesn't exist. Unloading module.",
-				address => $message->{address}
-			);
+
+			# If $message is defined, we're calling it from IRC. Else it's from
+			# autoloading. Don't try to say() command there since we're
+			# obviously not connected to IRC yet.
+			if (defined($message)) {
+				$self->{bot}->say(
+					who     => $message->{who},
+					channel => $message->{channel},
+					body    => "Error: Table schema 'schemas/$table.sql' doesn't exist. Unloading module.",
+					address => $message->{address}
+				);
+			} else {
+				print "\nError: Table schema 'schemas/$table.sql' doesn't exist. Unloading module.\n";
+			}
 
 			# Get module name
 			my $module = ref($self);
@@ -505,12 +513,16 @@ sub createTableIfNotExists {
 		$self->{bot}->{db}->do($sql);
 
 		# Report
-		$self->{bot}->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "MySQL table '$table' created",
-			address => $message->{address}
-		);
+		if (defined($message)) {
+			$self->{bot}->say(
+				who     => $message->{who},
+				channel => $message->{channel},
+				body    => "MySQL table '$table' created.",
+				address => $message->{address}
+			);
+		} else {
+			print "\nMySQL table '$table' created.\n";
+		}
 	}
 }
 

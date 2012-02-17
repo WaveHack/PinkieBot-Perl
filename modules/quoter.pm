@@ -40,7 +40,7 @@ sub init {
 
 		# Autoload, print to CLI only
 		} else {
-			print "Warning: Module 'Log' is not loaded or disabled and this module sort of depends\n"
+			print "\nWarning: Module 'Log' is not loaded or disabled and this module sort of depends\n"
 			    , "on it. Type !load Log to enable module 'Log' or suffer the consequences.\n";
 		}
 	}

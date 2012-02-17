@@ -38,7 +38,7 @@ sub init {
 
 		# Autoload, print to CLI only
 		} else {
-			print "Warning: Module 'Auth' is not loaded or disabled and this module sort of depends\n"
+			print "\nWarning: Module 'Auth' is not loaded or disabled and this module sort of depends\n"
 			    , "on it. Anyone can control the bot without the 'Auth' module!.\n";
 		}
 
