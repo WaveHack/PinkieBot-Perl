@@ -231,7 +231,7 @@ sub handleSaidUpdate {
 	$bot->say(
 		who     => $message->{who},
 		channel => 'msg',
-		body    => join("\n", @output),
+		body    => join('', @output),
 		address => 'msg'
 	);
 }
