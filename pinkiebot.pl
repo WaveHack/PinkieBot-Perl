@@ -26,7 +26,7 @@ use DBI;
 use warnings;
 use strict;
 
-my $version = '2.0.2';
+my $version = '2.0.3';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack. See https://bitbucket.org/WaveHack/pinkiebot/ for more info, command usage and source code.');
 
 # --- Initialization ---
@@ -178,7 +178,7 @@ sub loadModule {
 	my $self = shift;
 	my $module = shift;
 	my $message = shift;
-	my $args = join(' ', @_);
+	my $args = (defined(@_) ? join(' ', @_) : '');
 
 	my $moduleKey = lc($module);
 
@@ -222,12 +222,13 @@ sub loadModule {
 # Unloads a module (if loaded) and reloads it. Note that non-stored variables
 # are not kept and the whole init()itialization function is called again.
 sub reloadModule {
-	my ($self, $module, $message, $args) = @_;
+	my $self = shift;
+	my $module = shift;
+	my $message = shift;
+	my $args = (defined(@_) ? join(' ', @_) : '');
 
 	$self->unloadModule($module);
-	$self->loadModule($module, $message, $args);
-
-	return { status => 1, code => -1, string => "Module '$module' reloaded" };
+	return $ret = $self->loadModule($module, $message, $args);
 }
 
 # Unloads a module from memory.
