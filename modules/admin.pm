@@ -317,11 +317,13 @@ sub checkAuthorization {
 	# If Auth module isn't loaded, we're permitted everything
 	return 1 unless ($authLoaded);
 
-	unless ($bot->module('auth')->authorizationLevel($message->{raw_nick}) >= $level) {
+	my $authorizationLevel = $bot->module('auth')->authorizationLevel($message->{raw_nick});
+
+	unless ($authorizationLevel >= $level) {
 		$bot->say(
 			who     => $message->{who},
 			channel => 'msg',
-			body    => 'You are not authorized to perform that command.',
+			body    => "You are not authorized to perform that command. Need level $level, have level $authorizationLevel."),
 			address => 'msg'
 		);
 
