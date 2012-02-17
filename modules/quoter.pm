@@ -40,6 +40,10 @@ sub handleSaidQuoteSearch {
 
 	return unless ($message->{body} =~ /^!q (.+)$/);
 
+	# We may not use this through PRIVMSG, since it might contain Auth login
+	# information
+	return if ($message->{channel} eq 'msg');
+
 	my $search = $1;
 	my ($type, $who, $body);
 
@@ -77,6 +81,10 @@ sub handleSaidQuoteReplace {
 	my ($bot, $message) = @_;
 
 	return unless ($message->{body} =~ /^!(ss?) (?:\"([^"]+)\"|(.+?)) (?:\"([^"]+)\"|(.+))$/);
+
+	# We may not use this through PRIVMSG, since it might contain Auth login
+	# information
+	return if ($message->{channel} eq 'msg');
 
 	my $cmd = $1;
 	my $search = $2 || $3;
@@ -124,6 +132,10 @@ sub handleSaidQuoteSwitch {
 
 	return unless ($message->{body} =~ /^!sd (?:\"([^"]+)\"|(.+?)) (?:\"([^"]+)\"|(.+))$/);
 
+	# We may not use this through PRIVMSG, since it might contain Auth login
+	# information
+	return if ($message->{channel} eq 'msg');
+
 	my $word1 = $1 || $2;
 	my $word2 = $3 || $4;
 	my ($type, $who, $body);
@@ -167,6 +179,10 @@ sub handleSaidQuoteRegex {
 	my ($bot, $message) = @_;
 
 	return unless ($message->{body} =~ /^s\/([^\/]+)\/([^\/]+)\/([gi]*)/);
+
+	# We may not use this through PRIVMSG, since it might contain Auth login
+	# information
+	return if ($message->{channel} eq 'msg');
 
 	my $search = $1;
 	my $replace = $2;
