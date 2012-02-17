@@ -125,6 +125,28 @@ sub handleSaidUnloadModule {
 	# Check authorization
 	return unless (checkAuthorization($bot, $message, 9));
 
+	$module = lc($1);
+
+	if ($module eq 'admin') {
+		$bot->say(
+			who     => $message->{who},
+			channel => $message->{channel},
+			body    => "$message->{who}: Cannot unload Admin module! How else would you control me?!",
+			address => $message->{address}
+		);
+
+		sleep(2);
+
+		$bot->emote(
+			who     => $message->{who},
+			channel => $message->{channel},
+			body    => "mumbles something about $message->{who} being a silly filly.",
+			address => $message->{address}
+		);
+
+		return;
+	}
+
 	my $ret = $bot->unloadModule($1);
 
 	$bot->say(
@@ -133,6 +155,25 @@ sub handleSaidUnloadModule {
 		body    => ($message->{who} . ": $ret->{string} [Status: $ret->{status}, Code: $ret->{code}]"),
 		address => $message->{address}
 	);
+
+	if ($module eq 'auth') {
+		$bot->say(
+			who     => $message->{who},
+			channel => $message->{channel},
+			body    => "$message->{who}: Also reloading Admin module to update permissions. Anypony can control the bot now, have fun!",
+			address => $message->{address}
+		);
+
+		my $ret = $bot->reloadModule('admin');
+
+		$bot->say(
+			who     => $message->{who},
+			channel => $message->{channel},
+			body    => ($message->{who} . ": $ret->{string} [Status: $ret->{status}, Code: $ret->{code}]"),
+			address => $message->{address}
+		);
+
+	}
 }
 
 sub handleSaidReloadModule {
