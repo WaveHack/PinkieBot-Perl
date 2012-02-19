@@ -273,7 +273,7 @@ sub handleSaidModuleActive {
 sub handleSaidInfo {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} eq '!pinkiebot');
+	return unless ($message->{body} =~ /^!pinkiebot$/i);
 
 	$bot->say(
 		who     => $message->{who},
@@ -319,7 +319,7 @@ sub checkAuthorization {
 
 	my $authorizationLevel = $bot->module('auth')->authorizationLevel($message->{raw_nick});
 
-	unless ($authorizationLevel >= $level) {
+	if ($authorizationLevel < $level) {
 		$bot->say(
 			who     => $message->{who},
 			channel => 'msg',
