@@ -30,15 +30,19 @@ sub init {
 sub handleSaid {
 	my ($bot, $message) = @_;
 
-	return unless ($body =~ /^!g(?:oogle)? (.+)/);
+	#return unless ($message->{body} =~ /^!g(?:oogle)? (.+)/);
+	return unless ($message->{body} =~ /^!g(?:oogle)? (.+)/);
 
 	my $search = Google::Search->Web(query => $1);
 	my $result = $search->first;
 
+	my $title = $result->title;
+	$title =~ s/<b>(.+?)<\/b>/\x02$1\x0F/g;
+
 	$bot->say(
 		who     => $message->{who},
 		channel => $message->{channel},
-		body    => "$message->{who}: $result->title - $result->uri",
+		body    => ($message->{who} . ': ' . $title . ' - ' . $result->uri),
 		address => $message->{address}
 	);
 }
