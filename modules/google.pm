@@ -30,7 +30,6 @@ sub init {
 sub handleSaid {
 	my ($bot, $message) = @_;
 
-	#return unless ($message->{body} =~ /^!g(?:oogle)? (.+)/);
 	return unless ($message->{body} =~ /^!g(?:oogle)? (.+)/);
 
 	my $search = Google::Search->Web(query => $1);
