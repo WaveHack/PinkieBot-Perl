@@ -69,7 +69,7 @@ sub handleEmoteFriendly {
 	my $response;
 	switch ($1) {
 		case 'hugs'        { $response = 'hugs $1 back'; }
-		case 'licks'       { $response = 'is paralized'; }
+		case 'licks'       { $response = 'is paralyzed'; }
 		case 'soothes'     { $response = 'cheers up'; }
 		case 'comforts'    { $response = 'cheers up'; }
 		case 'pats'        { $response = 'purrs'; }
