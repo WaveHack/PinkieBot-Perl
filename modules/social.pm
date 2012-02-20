@@ -33,10 +33,10 @@ sub handleSaidGreet {
 	my ($bot, $message) = @_;
 
 	my $botName = $bot->pocoirc->nick_name;
-	return unless ($message->{body} =~ /^(hi|hello|herro|hey|lo|yo|sup|wazaa|hai2u|ohai) ($botName)$/i);
+	return unless ($message->{body} =~ /^(.+) (?:$botName)$/i);
 
 	my $response;
-	switch ($1) {
+	switch (lc($1)) {
 		case 'hi'    { $response = 'Hi $1.'; }
 		case 'hello' { $response = 'Hello to you too, $1!'; }
 		case 'herro' { $response = 'Herro herro, $1!'; }
@@ -47,6 +47,7 @@ sub handleSaidGreet {
 		case 'wazaa' { $response = 'Waaazzaaaaaaa!'; }
 		case 'hai2u' { $response = 'Hai2u2 $1.'; }
 		case 'ohai'  { $response = 'Ohey Johnny- eh I mean $1, what\'s up?'; }
+		else         { return; }
 	}
 
 	# Replace $1 with the name of the person invoking it
@@ -64,10 +65,10 @@ sub handleEmoteFriendly {
 	my ($bot, $message) = @_;
 
 	my $botName = $bot->pocoirc->nick_name;
-	return unless ($message->{body} =~ /^(hugs|licks|soothes|comforts|pats|gently pats|praises|cheers at|kisses|blushes at) ($botName)$/i);
+	return unless ($message->{body} =~ /^(.+) (?:$botName)$/i);
 
 	my $response;
-	switch ($1) {
+	switch (lc($1)) {
 		case 'hugs'        { $response = 'hugs $1 back'; }
 		case 'licks'       { $response = 'is paralyzed'; }
 		case 'soothes'     { $response = 'cheers up'; }
@@ -78,6 +79,8 @@ sub handleEmoteFriendly {
 		case 'cheers at'   { $response = 'is proud'; }
 		case 'kisses'      { $response = 'blushes'; }
 		case 'blushes at'  { $response = 'blushes'; }
+		case 'brohoofs'    { $response = 'brohoofs $1 back'; }
+		else               { return; }
 	}
 
 	# Replace $1 with the name of the person invoking it
