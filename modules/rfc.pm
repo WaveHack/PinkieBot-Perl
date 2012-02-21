@@ -20,7 +20,6 @@ use base 'PinkieBot::Module';
 
 use LWP::Simple;
 
-
 sub init {
 	my ($self, $bot, $message, $args) = @_;
 
