@@ -58,10 +58,10 @@ Googles for a term and returns the topmost result.
 
 **Commands**:
 
-*!g query*
-    Googles with said query and returns the first result.
-*!google query*
-    Googles with said query and returns the first result.
+*!g query* or *!google query*
+    Googles web pages  with said query and returns the first result.
+!ig query* or *!gimage query* or *!googleimage query* or *!googleimages query*
+    Googles images with said query and returns the first result.
 
 Log
 ---
@@ -119,8 +119,5 @@ the summary, with a link to the full article.
 
 **Commands**:
 
-*!w page*
+*!w page* or *!wiki page*
     Searches for page on Wikipedia.org.
-*!wiki page*
-    Searches for page on Wikipedia.org.
-

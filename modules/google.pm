@@ -24,10 +24,11 @@ sub init {
 	my ($self, $bot, $message, $args) = @_;
 
 	# Register hooks
-	$self->registerHook('said', \&handleSaid);
+	$self->registerHook('said', \&handleSaidWebSearch);
+	$self->registerHook('said', \&handleSaidImageSearch);
 }
 
-sub handleSaid {
+sub handleSaidWebSearch {
 	my ($bot, $message) = @_;
 
 	return unless ($message->{body} =~ /^!g(?:oogle)? (.+)/);
@@ -42,6 +43,22 @@ sub handleSaid {
 		who     => $message->{who},
 		channel => $message->{channel},
 		body    => ($message->{who} . ': ' . $title . ' - ' . $result->uri),
+		address => $message->{address}
+	);
+}
+
+sub handleSaidImageSearch {
+	my ($bot, $message) = @_;
+
+	return unless ($message->{body} =~ /^!(?:gi|gimage|googleimages?) (.+)/);
+
+	my $search = Google::Search->Image(query => $1);
+	my $result = $search->first;
+
+	$bot->say(
+		who     => $message->{who},
+		channel => $message->{channel},
+		body    => ($message->{who} . ': ' . $result->uri),
 		address => $message->{address}
 	);
 }
