@@ -20,8 +20,6 @@ them and not crash the mane thread.
 MySQL database and pinkiebot.ini configuration file is hardcoded into PinkieBot
 and might be moved to modules on a later date.
 
-**Note**: PinkieBot is currenlty in progress in old modules being ported over.
-
 Modules
 =======
 Admin
@@ -54,6 +52,17 @@ restart the whole PinkieBot process.
 *!pinkiebot*
     Prints some info about the bot.
 
+Google
+------
+Googles for a term and returns the topmost result.
+
+**Commands**:
+
+*!g query*
+    Googles with said query and returns the first result.
+*!google query*
+    Googles with said query and returns the first result.
+
 Log
 ---
 Records all raw activity in the database in the 'activity' table.
@@ -75,6 +84,15 @@ Module to search and replace quotes people said in the same IRC channel.
     Regex replace. See your friendly neighbourhood Perl Regular Expression
     manual for usage. Supported optional modifiers are 'g' and 'i'.
 
+RFC
+---
+Prints a summary of the RFC and links to a page with more information.
+
+**Commands**:
+
+*!rfc number*
+    Searches for a RFC with said number.
+
 Seen
 ----
 Reports when and where a person has been last seen by the bot.
@@ -82,3 +100,27 @@ Reports when and where a person has been last seen by the bot.
 **Commands**:
 
 *!seen person*
+    Reports when the person was last seen by the bot.
+
+Social
+------
+Some basic responses when interacting with the bot. Namely greeting the bot and
+some friendly emotes (e.g. hugs, pats).
+
+Title
+-----
+Posts the title when an URL is pasted in the chat. Does not work on certain URLs
+and on https links, however.
+
+Wikipedia
+---------
+Searches for an article on Wikipedia.org and prints the first ~300 characters of
+the summary, with a link to the full article.
+
+**Commands**:
+
+*!w page*
+    Searches for page on Wikipedia.org.
+*!wiki page*
+    Searches for page on Wikipedia.org.
+

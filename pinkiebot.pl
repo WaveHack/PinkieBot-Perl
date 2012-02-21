@@ -26,8 +26,8 @@ use DBI;
 use warnings;
 use strict;
 
-my $version = '2.0.5';
-my $botinfo = ('PinkieBot v' . $version . ' by WaveHack. See https://bitbucket.org/WaveHack/pinkiebot/ for more info, command usage and source code.');
+my $version = '2.0.6';
+my $botinfo = ('PinkieBot v' . $version . ' by WaveHack. See http://code.wavehack.net/pinkiebot for more info, reporting issues, command usage and source code.');
 
 # --- Initialization ---
 
