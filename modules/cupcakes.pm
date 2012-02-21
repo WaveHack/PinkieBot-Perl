@@ -24,7 +24,7 @@ my %randomAnswers = (
 		'Cupcakes! So sweet and tasty!',
 		'Cupcakes! Don\'t be too hasty!',
 		'Cupcakes, cupcakes, cupcaakess!',
-		'Did anyone say cupcakes?'
+		'Did anypony say cupcakes?'
 	],
 	'emote' => [
 		'throws a party for $1!',
