@@ -60,7 +60,7 @@ Googles for a term and returns the topmost result.
 
 *!g query* or *!google query*
     Googles web pages  with said query and returns the first result.
-!ig query* or *!gimage query* or *!googleimage query* or *!googleimages query*
+!gi query* or *!gimage query* or *!googleimage query* or *!googleimages query*
     Googles images with said query and returns the first result.
 
 Log
