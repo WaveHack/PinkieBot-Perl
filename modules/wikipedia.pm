@@ -71,8 +71,8 @@ sub handleSaid {
 	$text = $hs->parse($text);
 	$hs->eof;
 
-	# Get the first 293 characters due spam
-	$text = (substr($text, 0, 293) . '...');
+	# Limit to 293 characters to prevent spam
+	$text = ((length($text) > 296) ? (substr($text, 0, 293) . '...') : $text);
 
 	$bot->say(
 		who     => $message->{who},
