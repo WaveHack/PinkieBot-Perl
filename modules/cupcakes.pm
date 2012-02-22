@@ -24,11 +24,16 @@ my %randomAnswers = (
 		'Cupcakes! So sweet and tasty!',
 		'Cupcakes! Don\'t be too hasty!',
 		'Cupcakes, cupcakes, cupcaakess!',
-		'Did anypony say cupcakes?'
+		'Did anypony say cupcakes?',
+		'Yay! Cupcakes!',
+		'Wooo! Cupcakes!'
 	],
 	'emote' => [
 		'throws a party for $1!',
-		'cackles maniacally at $1 while she grabs a hacksaw'
+		'giggles',
+		'cheers',
+		'cackles maniacally at $1',
+		'glares at $1'
 	]
 );
 my $randomAnswerCount = 0;
