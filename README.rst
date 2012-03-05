@@ -1,5 +1,8 @@
-About PinkieBot
-###############
+PinkieBot
+#########
+
+About
+=====
 PinkieBot is yet another IRC bot and my attempt at learning the basics of Perl.
 It's based off Bot::Basicbot with certain additions (irc invite and mode
 events).
@@ -19,6 +22,11 @@ them and not crash the mane thread.
 
 MySQL database and pinkiebot.ini configuration file is hardcoded into PinkieBot
 and might be moved to modules on a later date.
+
+Legal
+=====
+PinkieBot is licensed under the DBAD license, which can be found here:
+http://philsturgeon.co.uk/code/dbad-license
 
 Modules
 =======
