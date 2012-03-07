@@ -18,7 +18,18 @@ sub handleSaid {
 	my $rfc = $1;
 	my $url = ('http://tools.ietf.org/html/rfc' . $rfc);
 
-	my $page = get($url) or return;
+	my $page = get($url);
+
+	unless (defined($page)) {
+		$bot->say(
+			who     => $message->{who},
+			channel => $message->{channel},
+			body    => ($message->{who} . ': Sorry, I can\'t find RFC ' . $rfc . '.'),
+			address => $message->{address}
+		);
+
+		return;
+	}
 
 	$page =~ /<title>(.+?)<\/title>/;
 	my $title = $1;
