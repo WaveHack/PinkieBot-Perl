@@ -28,7 +28,16 @@ sub handleSaid {
 	$page =~ /<div class="definition">(.+?)<\/div>/;
 
 	# Return if $term isn't defined (yet)
-	return if ($1 eq $term);
+	if ($1 eq $term) {
+		$bot->say(
+			who     => $message->{who},
+			channel => $message->{channel},
+			body    => ($message->{who} . ': Sorry, I can\'t find anything for \'' . $term . '\' on the Urban Dictionary.'),
+			address => $message->{address}
+		);
+
+		return;
+	}
 
 	my $definition = $1;
 	$definition =~ s/<br\/>/ /g; # Remove newlines
