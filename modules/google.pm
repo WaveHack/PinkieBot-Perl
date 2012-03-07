@@ -19,6 +19,17 @@ sub handleSaidWebSearch {
 	my $search = Google::Search->Web(query => $1);
 	my $result = $search->first;
 
+	unless (defined($result)) {
+		$bot->say(
+			who     => $message->{who},
+			channel => $message->{channel},
+			body    => ($message->{who} . ': Sorry, I can\'t find anything for \'' . $searchTerm . '\' on Google.'),
+			address => $message->{address}
+		);
+
+		return;
+	}
+
 	my $title = $result->title;
 	$title =~ s/<b>(.+?)<\/b>/\x02$1\x0F/g;
 
@@ -37,6 +48,17 @@ sub handleSaidImageSearch {
 
 	my $search = Google::Search->Image(query => $1);
 	my $result = $search->first;
+
+	unless (defined($result)) {
+		$bot->say(
+			who     => $message->{who},
+			channel => $message->{channel},
+			body    => ($message->{who} . ': Sorry, I can\'t find anything for \'' . $searchTerm . '\' on Google Images.'),
+			address => $message->{address}
+		);
+
+		return;
+	}
 
 	$bot->say(
 		who     => $message->{who},
