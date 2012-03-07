@@ -16,7 +16,8 @@ sub handleSaidWebSearch {
 
 	return unless ($message->{body} =~ /^!g(?:oogle)? (.+)/);
 
-	my $search = Google::Search->Web(query => $1);
+	my $searchTerm = $1;
+	my $search = Google::Search->Web(query => $searchTerm);
 	my $result = $search->first;
 
 	unless (defined($result)) {
@@ -46,7 +47,8 @@ sub handleSaidImageSearch {
 
 	return unless ($message->{body} =~ /^!(?:gi|gimage|googleimages?) (.+)/);
 
-	my $search = Google::Search->Image(query => $1);
+	my $searchTerm = $1;
+	my $search = Google::Search->Image(query => $searchTerm);
 	my $result = $search->first;
 
 	unless (defined($result)) {
