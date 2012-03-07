@@ -27,6 +27,10 @@ sub init {
 
 sub handleSaid {
 	my ($bot, $message) = @_;
+
+	# Don't log PRIVMSGs
+	return if ($message->{channel} eq 'msg');
+
 	$dbsth{activity}->execute('said', $message->{who}, $message->{raw_nick}, $message->{channel}, $message->{body}, $message->{address});
 }
 
