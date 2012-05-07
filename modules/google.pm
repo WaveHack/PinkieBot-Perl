@@ -2,6 +2,7 @@ package PinkieBot::Module::Google;
 use base 'PinkieBot::Module';
 
 use Google::Search;
+use HTML::Entities;
 
 sub init {
 	my ($self, $bot, $message, $args) = @_;
@@ -31,8 +32,7 @@ sub handleSaidWebSearch {
 		return;
 	}
 
-	my $title = $result->title;
-	$title =~ s/<b>(.+?)<\/b>/\x02$1\x0F/g;
+	my $title = HTML::Entities::decode($result->titleNoFormatting);
 
 	$bot->say(
 		who     => $message->{who},
