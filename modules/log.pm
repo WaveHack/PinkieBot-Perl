@@ -1,5 +1,8 @@
 package PinkieBot::Module::Log;
 use base 'PinkieBot::Module';
+use warnings;
+no warnings 'redefine';
+use strict;
 
 my %dbsth;
 

@@ -1,5 +1,8 @@
 package PinkieBot::Module::Synchtube;
 use base 'PinkieBot::Module';
+use warnings;
+no warnings 'redefine';
+use strict;
 
 use JSON;
 use LWP::UserAgent;

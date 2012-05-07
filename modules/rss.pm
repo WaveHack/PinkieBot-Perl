@@ -1,5 +1,8 @@
 package PinkieBot::Module::Rss;
 use base 'PinkieBot::Module';
+use warnings;
+no warnings 'redefine';
+use strict;
 
 use POE;
 use POE::Component::RSSAggregator;

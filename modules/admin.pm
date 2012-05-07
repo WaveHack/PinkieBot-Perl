@@ -1,5 +1,8 @@
 package PinkieBot::Module::Admin;
 use base 'PinkieBot::Module';
+use warnings;
+no warnings 'redefine';
+use strict;
 
 my $authLoaded = 1;
 
@@ -118,7 +121,7 @@ sub handleSaidUnloadModule {
 	# Check authorization
 	return unless (checkAuthorization($bot, $message, 9));
 
-	$module = lc($1);
+	my $module = lc($1);
 
 	if ($module eq 'admin') {
 		$bot->say(
@@ -275,7 +278,7 @@ sub handleSaidUpdate {
 	return unless (checkAuthorization($bot, $message, 9));
 
 	# Update from Mercurial
-	@output = `hg pull && hg up`;
+	my @output = `hg pull && hg up`;
 
 	$bot->say(
 		who     => $message->{who},

@@ -1,5 +1,8 @@
 package PinkieBot::Module::Quoter;
 use base 'PinkieBot::Module';
+use warnings;
+no warnings 'redefine';
+use strict;
 
 use Switch;
 

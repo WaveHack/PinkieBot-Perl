@@ -1,5 +1,8 @@
 package PinkieBot::Module::Cupcakes;
 use base 'PinkieBot::Module';
+use warnings;
+no warnings 'redefine';
+use strict;
 
 my %randomAnswers = (
 	'say' => [
@@ -39,7 +42,7 @@ sub handleSaid {
 	return unless ($message->{body} =~ /cupcakes/i);
 
 	my $randomIndex = int(rand($randomAnswerCount));
-	my $i, $output, $type;
+	my ($i, $output, $type);
 
 	$i = 0;
 	LOOP: while (my ($key, @value) = each(%randomAnswers)) {

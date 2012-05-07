@@ -1,5 +1,8 @@
 package PinkieBot::Module::Urbandict;
 use base 'PinkieBot::Module';
+use warnings;
+no warnings 'redefine';
+use strict;
 
 use LWP::Simple;
 use HTML::Strip;

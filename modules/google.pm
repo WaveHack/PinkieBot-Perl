@@ -1,5 +1,8 @@
 package PinkieBot::Module::Google;
 use base 'PinkieBot::Module';
+use warnings;
+no warnings 'redefine';
+use strict;
 
 use Google::Search;
 use HTML::Entities;

@@ -1,5 +1,8 @@
 package PinkieBot::Module::Wikipedia;
 use base 'PinkieBot::Module';
+use warnings;
+no warnings 'redefine';
+use strict;
 
 use WWW::Wikipedia;
 use HTML::Strip;

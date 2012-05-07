@@ -1,5 +1,8 @@
 package PinkieBot::Module::Title;
 use base 'PinkieBot::Module';
+use warnings;
+no warnings 'redefine';
+use strict;
 
 use URI::Title 'title';
 

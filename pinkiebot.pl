@@ -8,7 +8,7 @@ use DBI;
 use warnings;
 use strict;
 
-my $version = '2.0.6';
+my $version = '2.0.7';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack. See http://code.wavehack.net/pinkiebot for more info, reporting issues, command usage and source code.');
 
 # --- Initialization ---
@@ -419,13 +419,8 @@ sub leave_channel {
 # the bot and contains a handy function for registering hooks.
 
 package PinkieBot::Module;
-
 use warnings;
 use strict;
-
-# Reloading the same module file usually gives redefinition warnings. So disable
-# them here.
-no warnings 'redefine';
 
 sub new {
 	my ($class, $bot, $message, $args) = @_;

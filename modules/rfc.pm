@@ -1,5 +1,8 @@
 package PinkieBot::Module::Rfc;
 use base 'PinkieBot::Module';
+use warnings;
+no warnings 'redefine';
+use strict;
 
 use LWP::Simple;
 

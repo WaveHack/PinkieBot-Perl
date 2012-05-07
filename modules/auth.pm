@@ -1,5 +1,8 @@
 package PinkieBot::Module::Auth;
 use base 'PinkieBot::Module';
+use warnings;
+no warnings 'redefine';
+use strict;
 
 my %authenticatedUsers = ();
 
