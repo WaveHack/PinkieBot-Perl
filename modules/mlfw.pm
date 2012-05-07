@@ -6,6 +6,7 @@ use strict;
 
 use JSON;
 use LWP::UserAgent;
+use WWW::Shorten::Bitly;
 
 my $ua;
 
@@ -49,6 +50,14 @@ sub handleSaid {
 			);
 
 			return;
+		}
+
+		# Use Bit.ly if we set username/apikey in config
+		if (
+			defined($bot->{cfg}->val('bitly', 'username')) && ($bot->{cfg}->val('bitly', 'username') ne '') &&
+			defined($bot->{cfg}->val('bitly', 'apikey'))   && ($bot->{cfg}->val('bitly', 'apikey') ne '')
+		) {
+			$image = makeashorterlink($image, $bot->{cfg}->val('bitly', 'username'), $bot->{cfg}->val('bitly', 'apikey'));
 		}
 
         $bot->say(
