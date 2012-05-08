@@ -54,16 +54,16 @@ sub handleRSSFeed {
 
 		# Use Bit.ly if we set username/apikey in config
 		if (
-			defined($bot->{cfg}->val('rss', 'bitly_username')) && (bot->{cfg}->val('rss', 'bitly_username') ne '') &&
-			defined($bot->{cfg}->val('rss', 'bitly_apikey'))   && (bot->{cfg}->val('rss', 'bitly_apikey') ne '')
+			defined($bot->{cfg}->val('bitly', 'username')) && ($bot->{cfg}->val('bitly', 'username') ne '') &&
+			defined($bot->{cfg}->val('bitly', 'apikey'))   && ($bot->{cfg}->val('bitly', 'apikey') ne '')
 		) {
-			$url = makeashorterlink($headline->url, $cfg->val('rss', 'bitly_username'), $cfg->val('rss', 'bitly_apikey'));
+			$url = makeashorterlink($headline->url, $bot->{cfg}->val('bitly', 'username'), $bot->{cfg}->val('bitly', 'apikey'));
 		} else {
 			$url = $headline->url;
 		}
 
 		# Report to each channel
-		foreach my $channel (split(' ', $cfg->val('rss', 'channels'))) {
+		foreach my $channel (split(' ', $bot->{cfg}->val('rss', 'channels'))) {
 			$bot->say(
 				channel => $channel,
 				body    => sprintf("[ \x02%s\x0F: %s - %s ]", $feed->name, $headline->headline, $url)
