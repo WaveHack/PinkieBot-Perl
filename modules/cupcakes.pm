@@ -56,6 +56,10 @@ sub handleSaid {
 		}
 	}
 
+	unless (defined($type)) {
+		return;
+	}
+
 	# Replace $1 with the name of the person invoking it
 	$output =~ s/\$1/$message->{who}/;
 
