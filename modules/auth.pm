@@ -121,9 +121,10 @@ sub handleSaidLogoutAll {
 	}
 
 	# Logout everypony
-	for (keys %authenticatedUsers) {
-		delete($href{$_});
-	}
+	# todo: fix
+#	for (keys %authenticatedUsers) {
+#		delete($href{$_});
+#	}
 
 	$bot->say(
 		who     => $message->{who},
@@ -276,9 +277,9 @@ sub handleSaidAddUser {
 		return;
 	}
 
-	$username = $1;
-	$password = $2;
-	$level = $3;
+	my $username = $1;
+	my $password = $2;
+	my $level = $3;
 
 	unless (defined($level)) {
 		$level = 0;
@@ -326,7 +327,7 @@ sub handleSaidDeleteUser {
 		return;
 	}
 
-	$username = $1;
+	my $username = $1;
 
 	my $sth = $bot->{db}->prepare('SELECT 1 FROM auth WHERE username = ? LIMIT 1;');
 	$sth->execute($username);
@@ -383,8 +384,8 @@ sub handleSaidChangeLevel {
 		return;
 	}
 
-	$username = $1;
-	$level = $2;
+	my $username = $1;
+	my $level = $2;
 
 	my $sth = $bot->{db}->prepare('SELECT 1 FROM auth WHERE username = ? LIMIT 1;');
 	$sth->execute($username);
