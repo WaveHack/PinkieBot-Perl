@@ -41,7 +41,7 @@ sub handleSaid {
 
 		my $image = decode_json($response->decoded_content)->[0]{image};
 
-		unless ($image ne '') {
+		unless (defined($image) && $image ne '') {
 			$bot->say(
 					who     => $message->{who},
 					channel => $message->{channel},
