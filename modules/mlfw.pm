@@ -112,7 +112,7 @@ sub handleSaidMLFWRandom {
 	$bot->say(
 			who     => $message->{who},
 			channel => $message->{channel},
-			body    => ($message->{who} . ': MFW for \'' . $phrase . '\': ' . $image),
+			body    => ($message->{who} . ': Random MLFW for \'' . $phrase . '\': ' . $image),
 			address => $message->{address}
 	);
 }
