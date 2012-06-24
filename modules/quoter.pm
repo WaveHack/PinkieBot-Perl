@@ -117,6 +117,9 @@ sub handleSaidQuoteReplace {
 		? $body =~ s/\Q$search/$replace\E/ig
 		: $body =~ s/\Q$search/$replace\E/i;
 
+	# Limit to 293 characters to prevent spam
+	$body = ((length($body) > 296) ? (substr($body, 0, 293) . '...') : $body);
+
 	switch ($type) {
 		case 'said' {
 			$bot->say(
@@ -165,6 +168,9 @@ sub handleSaidQuoteSwitch {
 	$body =~ s/\x1A/\Q$word2\E/ig;
 	$body =~ s/\\(.)/$1/g;
 
+	# Limit to 293 characters to prevent spam
+	$body = ((length($body) > 296) ? (substr($body, 0, 293) . '...') : $body);
+
 	switch ($type) {
 		case 'said' {
 			$bot->say(
@@ -212,6 +218,9 @@ sub handleSaidQuoteRegex {
 	# Hack for supporting capture group 0, the whole search string
 	$replace =~ s/\\(\d+)/sprintf("\\%d",$1+1)/eg;
 	eval("\$body =~ s/($search)/$replace/$modifiers;");
+
+	# Limit to 293 characters to prevent spam
+	$body = ((length($body) > 296) ? (substr($body, 0, 293) . '...') : $body);
 
 	switch ($type) {
 		case 'said' {
