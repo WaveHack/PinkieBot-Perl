@@ -259,7 +259,7 @@ sub handleSaidModuleActive {
 sub handleSaidInfo {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^!pinkiebot$/i);
+	return unless ($message->{body} =~ /^!pinkiebot|pinkiebot\?$/i);
 
 	$bot->say(
 		who     => $message->{who},
