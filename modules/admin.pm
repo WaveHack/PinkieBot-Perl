@@ -30,6 +30,8 @@ sub init {
 	$self->registerHook('said', \&handleSaidUpdate);
 	$self->registerHook('said', \&handleSaidCmd);
 	$self->registerHook('said', \&handleSaidEval);
+	$self->registerHook('said', \&handleSaidChanJoin);
+	$self->registerHook('said', \&handleSaidChanPart);
 	$self->registerHook('invited', \&handleInvited);
 }
 
@@ -209,6 +211,28 @@ sub handleSaidEval {
 	eval("$1");
 
 	$bot->reply($@, $message) if $@;;
+}
+
+sub handleSaidChanJoin {
+	my ($bot, $message) = @_;
+
+	return unless ($bot->addressed($message) && ($message->{body} =~ /^chanjoin (.+)/));
+	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
+
+ 	my $channel = $1;
+ 	
+ 	$bot->join_channel($channel);
+}
+
+sub handleSaidChanPart {
+	my ($bot, $message) = @_;
+
+	return unless ($bot->addressed($message) && ($message->{body} =~ /^chanpart (.+)/));
+	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
+
+ 	my $channel = $1;
+ 	
+ 	$bot->leave_channel($channel, "Part request by $message->{who}.");
 }
 
 sub handleInvited {

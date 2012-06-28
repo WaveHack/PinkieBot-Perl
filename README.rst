@@ -62,6 +62,10 @@ Admin commands can only be used in a pivate message to the bot and almost all of
     Runs arbitrairy shell code.
 *!pinkiebot* or *pinkiebot?*
     Prints some info about the bot.
+*chanjoin (channel)* (7)
+    Joins a channel.
+*chanpart (channel)* (7)
+    Parts (leaves) a channel.
 
 Auth
 ----
