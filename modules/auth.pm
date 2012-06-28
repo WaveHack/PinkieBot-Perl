@@ -15,7 +15,7 @@ sub init {
 	# Register hooks
 	$self->registerHook('said', \&handleSaidLogin);
 	$self->registerHook('said', \&handleSaidLogout);
-	$self->registerHook('said', \&handleSaidLogoutAll);
+#	$self->registerHook('said', \&handleSaidLogoutAll);
 	$self->registerHook('said', \&handleSaidWhoami);
 	$self->registerHook('said', \&handleSaidListUsers);
 	$self->registerHook('said', \&handleSaidListUsernames);
@@ -27,98 +27,51 @@ sub init {
 sub handleSaidLogin {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^login ([^ ]+) (.*)/);
-	return unless ($message->{channel} eq 'msg');
+	return unless ($bot->addressedMsg($message) && ($message->{body} =~ /^login ([^ ]+) (.*)/));
+
+	# Check if already logged in
+	if (isLoggedIn($message->{raw_nick})) {
+		$bot->reply("You are already logged in from '$message->{raw_nick}'.", $message);
+		return;
+	}
 
 	my $username = $1;
 	my $password = $2;
 
-	# Check if already logged in
-	if (isLoggedIn($message->{raw_nick})) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "You are already logged in from $message->{raw_nick}.",
-			address => $message->{address}
-		);
-
-		return;
-	}
-
-	# Get level
+	# Check if user exists and get authorization level
 	my $sth = $bot->{db}->prepare('SELECT level FROM auth WHERE username = ? AND password = SHA1(?) LIMIT 1;');
 	$sth->execute($username, $password);
 	my $level = $sth->fetchrow_array();
 
 	# Invalid username/password
 	unless (defined($level)) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "Invalid username/password combination.",
-			address => $message->{address}
-		);
-
+		$bot->reply("Invalid username/password combination.", $message);
 		return;
 	}
 
 	# Store login
 	$authenticatedUsers{$message->{raw_nick}} = $level;
 
-	$bot->say(
-		who     => $message->{who},
-		channel => $message->{channel},
-		body    => "You are now logged in from $message->{raw_nick} with authorization level $level.",
-		address => $message->{address}
-	);
+	$bot->reply("You are now logged in from '$message->{raw_nick}' with authorization level $level.", $message);
 }
 
 sub handleSaidLogout {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^logout$/);
-	return unless ($message->{channel} eq 'msg');
-
-	# Check if not logged in
-	unless (isLoggedIn($message->{raw_nick})) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "You are not logged in.",
-			address => $message->{address}
-		);
-
-		return;
-	}
+	return unless ($bot->addressedMsg($message) && ($message->{body} =~ /^logout$/));
+	return unless (checkAuthorization($bot, $message, 1));
 
 	# Logout
 	delete($authenticatedUsers{$message->{raw_nick}});
 
-	$bot->say(
-		who     => $message->{who},
-		channel => $message->{channel},
-		body    => "You have been logged out from '$message->{raw_nick}'.",
-		address => $message->{address}
-	);
+	$bot->reply("You have been logged out from '$message->{raw_nick}'.", $message);
 }
 
 sub handleSaidLogoutAll {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^logout all$/);
-	return unless ($message->{channel} eq 'msg');
-
-	# Check if not logged in
-	unless (isLoggedIn($message->{raw_nick})) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "You are not logged in.",
-			address => $message->{address}
-		);
-
-		return;
-	}
+	return unless ($bot->addressedMsg($message) && ($message->{body} =~ /^logout all$/));
+	return unless (checkAuthorization($bot, $message, 8));
 
 	# Logout everypony
 	# todo: fix
@@ -126,108 +79,32 @@ sub handleSaidLogoutAll {
 #		delete($href{$_});
 #	}
 
-	$bot->say(
-		who     => $message->{who},
-		channel => $message->{channel},
-		body    => "Everyone (including you) has been logged out. You have been logged out from '$message->{raw_nick}'.",
-		address => $message->{address}
-	);
+#	$bot->reply("", $message);
 }
 
 sub handleSaidWhoami {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^whoami$/);
-	return unless ($message->{channel} eq 'msg');
+	return unless ($bot->addressedMsg($message) && ($message->{body} =~ /^whoami\??$/));
+	return unless (checkAuthorization($bot, $message, 1));
 
-	# Check if not logged in
-	unless (isLoggedIn($message->{raw_nick})) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "You are not logged in.",
-			address => $message->{address}
-		);
-
-		return;
-	}
-
-	# Logged in
-	$bot->say(
-		who     => $message->{who},
-		channel => $message->{channel},
-		body    => "You are logged in as '$message->{raw_nick}' with autorization level $authenticatedUsers{$message->{raw_nick}}.",
-		address => $message->{address}
-	);
+	$bot->reply("You are logged in as '$message->{raw_nick}' with autorization level $authenticatedUsers{$message->{raw_nick}}.", $message);
 }
 
 sub handleSaidListUsers {
 	my ($bot, $message) = @_;
+	
+	return unless ($bot->addressedMsg($message) && ($message->{body} =~ /^list users$/));
+	return unless (checkAuthorization($bot, $message, 8));
 
-	return unless ($message->{body} =~ /^list users$/);
-	return unless ($message->{channel} eq 'msg');
-
-	# Check if not logged in
-	unless (isLoggedIn($message->{raw_nick})) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "You are not logged in.",
-			address => $message->{address}
-		);
-
-		return;
-	}
-
-	# Check if authorized (level 9+)
-	unless (authorizationLevel($message->{raw_nick}) >= 9) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => ('You are not authorized to use this command. Have authentication level ' . authorizationLevel($message->{raw_nick}) . ', need at least 9.'),
-			address => $message->{address}
-		);
-
-		return;
-	}
-
-	$bot->say(
-		who     => $message->{who},
-		channel => $message->{channel},
-		body    => ('Logged in users: ' . join(', ', sort(keys(%authenticatedUsers))) . '.'),
-		address => $message->{address}
-	);
+	$bot->reply(("Logged in users: " . join(', ', sort(keys(%authenticatedUsers))) . '.'), $message);
 }
 
 sub handleSaidListUsernames {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^list usernames$/);
-	return unless ($message->{channel} eq 'msg');
-
-	# Check if not logged in
-	unless (isLoggedIn($message->{raw_nick})) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "You are not logged in.",
-			address => $message->{address}
-		);
-
-		return;
-	}
-
-	# Check if authorized (level 9+)
-	unless (authorizationLevel($message->{raw_nick}) >= 9) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => ('You are not authorized to use this command. Have authentication level ' . authorizationLevel($message->{raw_nick}) . ', need at least 9.'),
-			address => $message->{address}
-		);
-
-		return;
-	}
+	return unless ($bot->addressedMsg($message) && ($message->{body} =~ /^list usernames$/));
+	return unless (checkAuthorization($bot, $message, 8));
 
 	my (@usernames, $username, $level);
 	my $sth = $bot->{db}->prepare('SELECT username, level FROM auth ORDER BY username;');
@@ -239,43 +116,14 @@ sub handleSaidListUsernames {
 		push(@usernames, "$username ($level)");
 	}
 
-	$bot->say(
-		who     => $message->{who},
-		channel => $message->{channel},
-		body    => ('Registered usernames: ' . join(', ', @usernames) . '.'),
-		address => $message->{address}
-	);
+	$bot->reply(("Registered usernames: " . join(',', @usernames) . '.'), $message);
 }
 
 sub handleSaidAddUser {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^adduser ([^ ]+) ([^ ]+)(?: ([0-9]+))?/);
-	return unless ($message->{channel} eq 'msg');
-
-	# Check if not logged in
-	unless (isLoggedIn($message->{raw_nick})) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "You are not logged in.",
-			address => $message->{address}
-		);
-
-		return;
-	}
-
-	# Check if authorized (level 9+)
-	unless (authorizationLevel($message->{raw_nick}) >= 9) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => ('You are not authorized to use this command. Have authentication level ' . authorizationLevel($message->{raw_nick}) . ', need at least 9.'),
-			address => $message->{address}
-		);
-
-		return;
-	}
+	return unless ($bot->addressedMsg($message) && ($message->{body} =~ /^adduser ([^ ]+) ([^ ]+)(?: ([0-9]+))?/));
+	return unless (checkAuthorization($bot, $message, 8));
 
 	my $username = $1;
 	my $password = $2;
@@ -284,48 +132,21 @@ sub handleSaidAddUser {
 	unless (defined($level)) {
 		$level = 0;
 	}
+	
+	# todo: Check if username already exists
 
 	# Insert user
 	my $sth = $bot->{db}->prepare('INSERT INTO auth (username, password, level) VALUES (?, SHA1(?), ?);');
 	$sth->execute($username, $password, $level);
 
-	$bot->say(
-		who     => $message->{who},
-		channel => $message->{channel},
-		body    => "User '$username' has been added with password '$password' and authorization level '$level'.",
-		address => $message->{address}
-	);
+	$bot->reply("User '$username' has been added with password '$password' and authorization level '$level'.", $message);
 }
 
 sub handleSaidDeleteUser {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^deluser (.*)/);
-	return unless ($message->{channel} eq 'msg');
-
-	# Check if not logged in
-	unless (isLoggedIn($message->{raw_nick})) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "You are not logged in.",
-			address => $message->{address}
-		);
-
-		return;
-	}
-
-	# Check if authorized (level 9+)
-	unless (authorizationLevel($message->{raw_nick}) >= 9) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => ('You are not authorized to use this command. Have authentication level ' . authorizationLevel($message->{raw_nick}) . ', need at least 9.'),
-			address => $message->{address}
-		);
-
-		return;
-	}
+	return unless ($bot->addressedMsg($message) && ($message->{body} =~ /^deluser (.*)/));
+	return unless (checkAuthorization($bot, $message, 8));
 
 	my $username = $1;
 
@@ -333,56 +154,21 @@ sub handleSaidDeleteUser {
 	$sth->execute($username);
 
 	unless ($sth->rows == 1) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "User '$username' does not exist.",
-			address => $message->{address}
-		);
-
+		$bot->reply("User '$username' doesn't exist.", $message);
 		return;
 	}
 
 	$sth = $bot->{db}->prepare('DELETE FROM auth WHERE username = ?;');
 	$sth->execute($username);
-
-	$bot->say(
-		who     => $message->{who},
-		channel => $message->{channel},
-		body    => "User '$username' deleted.",
-		address => $message->{address}
-	);
+	
+	$bot->reply("User '$username' deleted.", $message);
 }
 
 sub handleSaidChangeLevel {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^changelevel ([^ ]+) ([0-9]+)/);
-	return unless ($message->{channel} eq 'msg');
-
-	# Check if not logged in
-	unless (isLoggedIn($message->{raw_nick})) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "You are not logged in.",
-			address => $message->{address}
-		);
-
-		return;
-	}
-
-	# Check if authorized (level 9)
-	unless (authorizationLevel($message->{raw_nick}) >= 9) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => ('You are not authorized to use this command. Have authentication level ' . authorizationLevel($message->{raw_nick}) . ', need at least 9.'),
-			address => $message->{address}
-		);
-
-		return;
-	}
+	return unless ($bot->addressedMsg($message) && ($message->{body} =~ /^changelevel ([^ ]+) ([0-9]+)/));
+	return unless (checkAuthorization($bot, $message, 8));
 
 	my $username = $1;
 	my $level = $2;
@@ -391,26 +177,25 @@ sub handleSaidChangeLevel {
 	$sth->execute($username);
 
 	unless ($sth->rows == 1) {
-		$bot->say(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "User '$username' does not exist.",
-			address => $message->{address}
-		);
+		$bot->reply("User '$username' doesn't exist.", $message);
+		return;
+	}
 
+	my $authorizationLevel = authorizationLevel($message->{raw_nick});
+
+	# Can only change level to equal or lower than current level 
+	if ($level > $authorizationLevel) {
+		$bot->reply("Can only change target level to level $authorizationLevel or lower.", $message);
 		return;
 	}
 
 	$sth = $bot->{db}->prepare('UPDATE auth SET level = ? WHERE username = ?;');
 	$sth->execute($level, $username);
 
-	$bot->say(
-		who     => $message->{who},
-		channel => $message->{channel},
-		body    => "Level for '$username' is now $level.",
-		address => $message->{address}
-	);
+	$bot->reply("Level for '$username' is now $level.", $message);
 }
+
+# Helper functions
 
 sub authorizationLevel {
 	my ($self, $raw_nick) = @_;
@@ -428,6 +213,34 @@ sub isLoggedIn {
 	$raw_nick = $self unless (defined($raw_nick));
 
 	return (exists($authenticatedUsers{$raw_nick}) ? 1 : 0);
+}
+
+# Global functions
+
+sub checkAuthorization {
+	my ($module, $bot, $message, $level) = @_;
+
+	# When loading from a module, we have $module. If loading from here, we
+	# don't have $module, so shift everything one place to the right.
+	unless (defined($level)) {
+		$level   = $message;
+		$message = $bot;
+		$bot     = $module;
+	}
+
+	unless (isLoggedIn($message->{raw_nick})) {
+		$bot->reply("You are not logged in.", $message);
+		return 0;
+	}
+
+	my $authorizationLevel = authorizationLevel($message->{raw_nick});
+
+	unless ($authorizationLevel >= $level) {
+		$bot->reply("You are not authorized to preform that command. (Have level $authorizationLevel, need level $level).", $message);
+		return 0;
+	}
+
+	return 1;
 }
 
 1;

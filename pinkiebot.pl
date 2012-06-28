@@ -380,14 +380,14 @@ sub moduleFunc {
 sub addressed {
 	my ($self, $message) = @_;
 
-	return ((defined($message->{address}) && ($message->{address} eq $bot->{nick})) ? 1 : 0);
+	return (((defined($message->{address}) && ($message->{address} eq $bot->{nick})) || ($message->{channel} eq 'msg')) ? 1 : 0);
 }
 
 # Check if the bot is addressed through private msg only
 sub addressedMsg {
-	my ($self, $message) = @);
-	
-	return (($self->addressed($message) && ($message->{channel} eq 'msg')) ? 1 : 0);
+	my ($self, $message) = @_;
+
+	return (($message->{channel} eq 'msg') ? 1 : 0);
 }
 
 # Reports info in either IRC when connected or on the CLI when not
