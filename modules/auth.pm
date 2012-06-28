@@ -228,12 +228,19 @@ sub checkAuthorization {
 		$bot     = $module;
 	}
 
-	unless (isLoggedIn($message->{raw_nick})) {
+	my $raw_nick;
+	if (defined($message->{raw_nick})) {
+		$raw_nick = $message->{raw_nick};
+	} elsif (defined($message->{inviter})) {
+		$raw_nick = $message->{inviter};
+	}
+
+	unless (isLoggedIn($raw_nick)) {
 		$bot->reply("You are not logged in.", $message);
 		return 0;
 	}
 
-	my $authorizationLevel = authorizationLevel($message->{raw_nick});
+	my $authorizationLevel = authorizationLevel($raw_nick);
 
 	unless ($authorizationLevel >= $level) {
 		$bot->reply("You are not authorized to preform that command. (Have level $authorizationLevel, need level $level).", $message);
