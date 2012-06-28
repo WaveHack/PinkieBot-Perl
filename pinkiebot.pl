@@ -8,8 +8,8 @@ use DBI;
 use warnings;
 use strict;
 
-my $version = '2.0.8';
-my $botinfo = ('PinkieBot v' . $version . ' by WaveHack. See https://bitbucket.org/WaveHack/pinkiebot for more info, reporting issues, command usage and source code.');
+my $version = '2.0.9';
+my $botinfo = ('PinkieBot v' . $version . ' by WaveHack (aka Octavia). See https://bitbucket.org/WaveHack/pinkiebot for more info, reporting issues, command usage and source code.');
 
 # --- Initialization ---
 
@@ -72,14 +72,12 @@ $bot->{db}->do('SET NAMES utf8');
 # Autoload modules if any (set in config)
 if ($cfg->val('irc', 'autoload') ne '') {
 	foreach (split(' ', $cfg->val('irc', 'autoload'))) {
-		print "Auto-loading module '$_'...";
+		print "Auto-loading module '$_'...\n ";
 
 		my $ret = $bot->loadModule($_);
 
 		if ($ret->{status} == 0) {
-			print " ERROR: {$ret->{string}}\n";
-		} else {
-			print " done\n";
+			print "ERROR: {$ret->{string}}\n";
 		}
 	}
 }
@@ -371,6 +369,55 @@ sub module {
 	return $self->{modules}->{lc($module)}->{object};
 }
 
+sub moduleFunc {
+	my ($self, $module, $func, @args) = @_[ARG0, ARG1, ARG2, ARG3 .. $#_];
+
+	return $self->module($module)->$func();
+}
+
+# Check if the bot is addressed with text (either through private msg or
+# channel with '$botname: $message')
+sub addressed {
+	my ($self, $message) = @_;
+
+	return ((defined($message->{address}) && ($message->{address} eq $bot->{nick})) ? 1 : 0);
+}
+
+# Check if the bot is addressed through private msg only
+sub addressedMsg {
+	my ($self, $message) = @);
+	
+	return (($self->addressed($message) && ($message->{channel} eq 'msg')) ? 1 : 0);
+}
+
+# Reports info in either IRC when connected or on the CLI when not
+sub report {
+	my ($self, $text, $message) = @_;
+
+	if (defined($message)) {
+		$self->say(
+			who     => $message->{who},
+			channel => $message->{channel},
+			body    => $text,
+			address => $message->{address}
+		);
+	} else {
+		print "$text\n";
+	}
+}
+
+# Replies to someone in say, either in a channel or in private msg
+sub reply {
+	my ($self, $text, $message) = @_;
+
+	$self->say(
+		who     => $message->{who},
+		channel => $message->{channel},
+		body    => $text,
+		address => $message->{address}
+	);
+}
+
 # --- POE extensions ---
 
 # Register additional IRC events
@@ -455,20 +502,7 @@ sub createTableIfNotExists {
 		# If file doesn't exist
 		unless (-e "schemas/$table.sql") {
 			# Complain
-
-			# If $message is defined, we're calling it from IRC. Else it's from
-			# autoloading. Don't try to say() command there since we're
-			# obviously not connected to IRC yet.
-			if (defined($message)) {
-				$self->{bot}->say(
-					who     => $message->{who},
-					channel => $message->{channel},
-					body    => "Error: Table schema 'schemas/$table.sql' doesn't exist. Unloading module.",
-					address => $message->{address}
-				);
-			} else {
-				print "\nError: Table schema 'schemas/$table.sql' doesn't exist. Unloading module.\n";
-			}
+			$self->{bot}->report("Table schema 'schemas/$table.sql' doesn't exists. Unloading module.", $message);
 
 			# Get module name
 			my $module = ref($self);
@@ -490,16 +524,7 @@ sub createTableIfNotExists {
 		$self->{bot}->{db}->do($sql);
 
 		# Report
-		if (defined($message)) {
-			$self->{bot}->say(
-				who     => $message->{who},
-				channel => $message->{channel},
-				body    => "MySQL table '$table' created.",
-				address => $message->{address}
-			);
-		} else {
-			print "\nMySQL table '$table' created.\n";
-		}
+		$self->{bot}->report("Table '$table' created.");
 	}
 }
 
