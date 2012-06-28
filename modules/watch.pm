@@ -12,6 +12,8 @@ sub init {
 	# Register hooks
 	$self->registerHook('said', \&handleSaidWatch);
 	$self->registerHook('said', \&handleSaidUnwatch);
+#	$self->registerHook('said', \&handleSaidUnwatchAll);
+#	$self->registerHook('said', \&handleSaidWatching);
 	$self->registerHook('said', \&handleSaid);
 	$self->registerHook('emote', \&handleEmote);
 }
@@ -59,11 +61,8 @@ sub handleSaid {
 	my $person = $message->{who};
 
 	while (my ($watcher, @watchedlist) = each(%watchlist)) {
-		print "watcher $watcher\n";
 		foreach my $watched (@{$watchlist{$watcher}}) {
-			print "watched $watched\n";
 			if (lc($person) eq $watched) {
-				print "hit\n";
 				$bot->say(
 					who     => $message->{who},
 					channel => $message->{channel},
