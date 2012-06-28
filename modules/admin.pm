@@ -22,8 +22,8 @@ sub init {
 	$self->registerHook('said', \&handleSaidLoadModule);
 	$self->registerHook('said', \&handleSaidUnloadModule);
 	$self->registerHook('said', \&handleSaidReloadModule);
-	$self->registerHook('said', \&handleSaidDisableModule);
 	$self->registerHook('said', \&handleSaidEnableModule);
+	$self->registerHook('said', \&handleSaidDisableModule);
 	$self->registerHook('said', \&handleSaidModuleLoaded);
 	$self->registerHook('said', \&handleSaidModuleActive);
 	$self->registerHook('said', \&handleSaidInfo);

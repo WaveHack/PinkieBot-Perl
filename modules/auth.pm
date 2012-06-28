@@ -59,7 +59,7 @@ sub handleSaidLogout {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressedMsg($message) && ($message->{body} =~ /^logout$/));
-	return unless (checkAuthorization($bot, $message, 1));
+	return unless (checkAuthorization($bot, $message, 0));
 
 	# Logout
 	delete($authenticatedUsers{$message->{raw_nick}});
@@ -86,7 +86,7 @@ sub handleSaidWhoami {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressedMsg($message) && ($message->{body} =~ /^whoami\??$/));
-	return unless (checkAuthorization($bot, $message, 1));
+	return unless (checkAuthorization($bot, $message, 0));
 
 	$bot->reply("You are logged in as '$message->{raw_nick}' with autorization level $authenticatedUsers{$message->{raw_nick}}.", $message);
 }
