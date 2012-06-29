@@ -26,11 +26,13 @@ Numbers behind the commands indicate the required authorization level to perform
     * 8 - User management and bot updating
     * 9 - Arbitairy Perl/Shell commands
 
+Round brackets () in a command indicate that that parameter is required and the commmand will use that parameter for the functionality it's supposed to do. Square brackets [] indicate that that argument is optional and can be omitted. 
+
 Admin
 -----
 Default administration module for PinkieBot. Do not unload it unless you want to restart the whole PinkieBot process. Without the Admin module loaded, nobody can control the bot.
 
-Admin commands can only be used in a pivate message to the bot and almost all of the functions require you to be logged in, if you have the Auth module loaded.
+If you have the Auth module loaded, almost all of these Admin commands require you to be logged in in the Auth module. The 'eval' and 'cmd' functions are disabled if the Auth module isn't loaded to prevent abuse.
 
 **Commands**:
 
@@ -69,9 +71,9 @@ Admin commands can only be used in a pivate message to the bot and almost all of
 
 Auth
 ----
-Without the Auth module, anyone has access to the Admin functions (save for 'eval' and 'cmd'). Highly recommended to keep active at all times.
+Without the Auth module, anyone has access to the Admin functions (except for 'eval' and 'cmd'). Highly recommended to keep active at all times, unless you're testing/developing in a secluded channel.
 
-Logins are based on raw nick, which is nickname!username@vhost. Be cautious with shared (v)hosts, as login sessions can be stolen this way.
+Logins are based on raw nick, which is nickname!username@vhost. Be cautious with shared (v)hosts, as login sessions can be stolen this way. Logins persist after chanpart/quit.
 
 **Commands**:
 
@@ -102,9 +104,9 @@ Googles for a term and returns the topmost result.
 
 **Commands**:
 
-*!g query* or *!google query*
+*!g (query)*
     Googles web pages  with said query and returns the first result.
-!gi query* or *!gimage query* or *!googleimage query* or *!googleimages query*
+*!gi (query)*
     Googles images with said query and returns the first result.
 
 Log
@@ -134,14 +136,14 @@ Module to search and replace quotes people said in the same IRC channel.
 
 **Commands**:
 
-*!s search replace*
+*!s (search) (replace)*
     Searches for the latest line where $search is in, and replaces the first occurrence with $replace.
-*!ss search replace*
+*!ss (search) (replace)*
     Searches for the latest line where $search is in, and replaces all occurrences with $replace.
-*!sd word1 word2*
+*!sd (word1) (word2)*
     Searches for the latest line where both $word1 and $word2 are in and switches them around.
-*s/search/replace/[modifiers]*
-    Regex replace. See your friendly neighbourhood Perl Regular Expression manual for usage. Supported optional modifiers are 'g' and 'i'.
+*s/(search)/(replace)/[modifiers]*
+    Regex replace. See your friendly neighbourhood Perl Regular Expression manual for usage. Supported optional modifiers are 'g' and 'i'. There's hacked-in support for the full search string in the form of capture group 0 (\0).
 
 RFC
 ---
@@ -149,7 +151,7 @@ Prints a summary of the RFC and links to a page with more information.
 
 **Commands**:
 
-*!rfc number*
+*!rfc (number)*
     Searches for a RFC with said number.
 
 RSS
@@ -164,7 +166,7 @@ Reports when and where a person has been last seen by the bot.
 
 **Commands**:
 
-*!seen person*
+*!seen (name)*
     Reports when the person was last seen by the bot.
 
 Social
@@ -190,7 +192,7 @@ Searches for an Urban Dictionary definition and posts the first result.
 
 **Commands**:
 
-*!ud (definition)* or *!urbandict (definition)*
+*!ud (definition)*
     Posts the first Urban Dictionary definition result.
 
 Watch
@@ -199,8 +201,8 @@ Keeps an eye on when somebody is back. When a person is back (when they say or e
 
 **Commands**:
 
-*!watch (person)*
-    Watches the person.
+*!watch (name)*
+    Watches a person.
 
 Wikipedia
 ---------
@@ -208,5 +210,5 @@ Searches for an article on Wikipedia.org and prints the first ~300 characters of
 
 **Commands**:
 
-*!w page* or *!wiki page*
+*!w (page)* or *!wiki (page)*
     Searches for page on Wikipedia.org.
