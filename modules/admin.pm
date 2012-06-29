@@ -100,7 +100,7 @@ sub handleSaidLoadModule {
 		my @modules = split(',', $module);
 
 		foreach (@modules) {
-			my $ret = $bot->loadModule(trim($_), $message);
+			my $ret = $bot->loadModule($_, $message);
 			$bot->reply("$ret->{string} [Status: $ret->{status}, Code: $ret->{code}]", $message);
 		}
 

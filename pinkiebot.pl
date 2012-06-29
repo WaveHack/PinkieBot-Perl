@@ -8,7 +8,7 @@ use DBI;
 use warnings;
 use strict;
 
-my $version = '2.0.9';
+my $version = '2.0.10';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack (aka Octavia). See https://bitbucket.org/WaveHack/pinkiebot for more info, reporting issues, command usage and source code.');
 
 # --- Initialization ---
@@ -160,7 +160,10 @@ sub loadModule {
 	my $message = shift;
 	my $args = (defined($_[0]) ? join(' ', @_) : '');
 
+	# Lowercase and trim whitespace
 	my $moduleKey = lc($module);
+	$modulekey =~ s/^\s+//;
+	$modulekey =~ s/\s+$//;
 
 	# Check if module already loaded
 	if ($self->{modules}->{$moduleKey}) {
