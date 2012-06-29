@@ -10,7 +10,7 @@ sub init {
 	my ($self, $bot, $message, $args) = @_;
 
 	# Warn if module Auth isn't loaded
-	unless ($bot->moduleLoaded('auth')) {
+	unless ($bot->moduleActive('auth')) {
 		$bot->report("Warning: Module 'Auth' is not loaded or disabled and this module sort of depends on it. Anyone can control the bot without it!", $message);
 		$authLoaded = 0;
 	}
@@ -39,7 +39,7 @@ sub handleSaidListAvailable {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^list available(?: modules)?$/));
-	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6)); 
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6)); 
 
 	$bot->reply(('Available modules: ' . join(', ', sort($bot->getAvailableModules()))), $message);
 }
@@ -48,7 +48,7 @@ sub handleSaidListLoaded {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^list loaded(?: modules)?$/));
-	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6)); 
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6)); 
 
 	$bot->reply(('Loaded modules: ' . join(', ', sort($bot->getLoadedModules()))), $message);
 }
@@ -57,7 +57,7 @@ sub handleSaidListActive {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^list active(?: modules)?$/));
-	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
 
 	$bot->reply(('Active modules: ' . join(', ', sort($bot->getLoadedModules()))), $message);
 }
@@ -66,7 +66,7 @@ sub handleSaidLoadModule {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^load(?: module)? ([^ ]+)(?: (.+))?/));
-	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
 
 	my $ret = $bot->loadModule($1, $message, $2);
 
@@ -77,7 +77,7 @@ sub handleSaidUnloadModule {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^unload(?: module)? (.+)/));
-	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
 
 	my $module = lc($1);
 
@@ -112,7 +112,7 @@ sub handleSaidReloadModule {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^reload(?: module)? ([^ ]+)(?: (.+))?/));
-	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
 
 	my $ret = $bot->reloadModule($1, $message, $2);
 
@@ -123,7 +123,7 @@ sub handleSaidEnableModule {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^enable(?: module)? (.+)/));
-	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
 
 	my $ret = $bot->enableModule($1);
 
@@ -134,7 +134,7 @@ sub handleSaidDisableModule {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^disable(?: module)? (.+)/));
-	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
 
 	my $ret = $bot->disableModule($1);
 
@@ -145,7 +145,7 @@ sub handleSaidModuleLoaded {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^(?:(?:is )?module )?(.+)(?: loaded)\?$/));
-	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
 
 	$bot->reply(($bot->moduleLoaded($1) ? 'Yessiree!' : 'Nopie dopie lopie!'), $message);
 }
@@ -154,7 +154,7 @@ sub handleSaidModuleActive {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^(?:(?:is )?module )?(.+)(?: active)\?$/));
-	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
 
 	$bot->reply(($bot->moduleActive($1) ? 'Yessiree!' : 'Nopie dopie lopie!'), $message);
 }
@@ -171,7 +171,7 @@ sub handleSaidUpdate {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^update$/));
-	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 8));
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 8));
 
 	# Update from Mercurial
 	my @output = `hg pull && hg up`;
@@ -184,7 +184,7 @@ sub handleSaidCmd {
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^cmd (.+)/));
 
-	if (!$bot->moduleLoaded('auth')) {
+	if (!$bot->moduleActive('auth')) {
 		$bot->reply("Cmd is disabled when Auth module isn't loaded", $message);
 		return;
 	}
@@ -201,7 +201,7 @@ sub handleSaidEval {
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^eval (.+)/));
 
-	if (!$bot->moduleLoaded('auth')) {
+	if (!$bot->moduleActive('auth')) {
 		$bot->reply("Eval is disabled when Auth module isn't loaded", $message);
 		return;
 	}
@@ -217,7 +217,7 @@ sub handleSaidChanJoin {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^chanjoin (.+)/));
-	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
 
  	my $channel = $1;
  	
@@ -228,7 +228,7 @@ sub handleSaidChanPart {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^chanpart (.+)/));
-	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
 
  	my $channel = $1;
  	
@@ -238,7 +238,7 @@ sub handleSaidChanPart {
 sub handleInvited {
 	my ($bot, $message) = @_;
 
-	return if ($bot->moduleLoaded('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
 
 	$bot->join_channel($message->{channel});
 }
