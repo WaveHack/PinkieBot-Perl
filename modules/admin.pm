@@ -16,6 +16,7 @@ sub init {
 	}
 
 	# Register hooks
+	$self->registerHook('said', \&handleSaidListModules);
 	$self->registerHook('said', \&handleSaidListAvailable);
 	$self->registerHook('said', \&handleSaidListLoaded);
 	$self->registerHook('said', \&handleSaidListActive);
@@ -33,6 +34,29 @@ sub init {
 	$self->registerHook('said', \&handleSaidChanJoin);
 	$self->registerHook('said', \&handleSaidChanPart);
 	$self->registerHook('invited', \&handleInvited);
+}
+
+sub handleSaidListModules {
+	my ($bot, $message) = @_;
+
+	return unless ($bot->addressed($message) && ($message->{body} =~ /^list(?: all)? modules$/));
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
+
+	my @availableModules = $bot->getAvailableModules();
+	my @activeModules = $bot->getActiveModules();
+	my @loadedModules = $bot->getLoadedModules();
+
+	my %activeModulesHash = map{$_ => 1} @activeModules;
+	my %loadedModulesHash = map{$_ => 1} @loadedModules;
+
+	my @loadedButDisabledModules = grep(!defined($activeModulesHash{$_}), @loadedModules);
+	my @availableButNotLoadedModules = grep(!defined($loadedModulesHash{$_}), @availableModules);
+
+	my $ret = ("\x02Active:\x0F " . join(', ', sort(@activeModules)) . '.');
+	$ret   .= (" \x02Disabled:\x0F " . join(', ', sort(@loadedButDisabledModules)) . '.') if (scalar(@loadedButDisabledModules) > 0);
+	$ret   .= (" \x02Available:\x0F " . join(', ', sort(@availableButNotLoadedModules)) . '.') if (scalar(@availableButNotLoadedModules) > 0);
+
+	$bot->reply($ret, $message);
 }
 
 sub handleSaidListAvailable {
