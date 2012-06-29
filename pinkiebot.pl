@@ -162,8 +162,8 @@ sub loadModule {
 
 	# Lowercase and trim whitespace
 	my $moduleKey = lc($module);
-	$modulekey =~ s/^\s+//;
-	$modulekey =~ s/\s+$//;
+	$moduleKey =~ s/^\s+//;
+	$moduleKey =~ s/\s+$//;
 
 	# Check if module already loaded
 	if ($self->{modules}->{$moduleKey}) {
