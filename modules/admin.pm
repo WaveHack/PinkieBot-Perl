@@ -83,7 +83,7 @@ sub handleSaidListActive {
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^list active(?: modules)?$/));
 	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
 
-	$bot->reply(('Active modules: ' . join(', ', sort($bot->getLoadedModules()))), $message);
+	$bot->reply(('Active modules: ' . join(', ', sort($bot->getActiveModules()))), $message);
 }
 
 sub handleSaidLoadModule {
