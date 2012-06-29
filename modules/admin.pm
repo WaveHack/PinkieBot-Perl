@@ -117,33 +117,26 @@ sub handleSaidUnloadModule {
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^unload(?: module)? (.+)/));
 	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
 
-	my $module = lc($1);
+	my @modules = split(',', $1);
 
-	# Just because I can
-	if ($module eq 'admin') {
-		$bot->reply("I can't unload the Admin module, you silly! How else would you control me?", $message);
+	MODULE: foreach (@modules) {
+		# Just because I can
+		if (lc($_) eq 'admin') {
+			$bot->reply("I can't unload the Admin module, you silly! How else would you control me?", $message);
 
-		$bot->emote(
-			who     => $message->{who},
-			channel => $message->{channel},
-			body    => "giggles and mumbles something about $message->{who} being a silly filly.",
-			address => $message->{address}
-		);
+			$bot->emote(
+				who     => $message->{who},
+				channel => $message->{channel},
+				body    => "giggles and mumbles something about $message->{who} being a silly filly.",
+				address => $message->{address}
+			);
 
-		return;
+			next MODULE; #continue
+		}
+
+		my $ret = $bot->unloadModule($_);
+		$bot->reply("$ret->{string} [Status: $ret->{status}, Code: $ret->{code}]", $message);		
 	}
-
-	my $ret = $bot->unloadModule($1);
-
-	$bot->reply("$ret->{string} [Status: $ret->{status}, Code: $ret->{code}]", $message);
-
-#	if ($module eq 'auth') {
-#		$bot->reply("Also reloading module Admin to update permissions. Anypony can control me now. :3", $message);
-#
-#		my $ret = $bot->reloadModule('admin');
-#
-#		$bot->reply("$ret->{string} [Status: $ret->{status}, Code: $ret->{code}]", $message);
-#	}
 }
 
 sub handleSaidReloadModule {
