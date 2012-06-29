@@ -46,10 +46,12 @@ If you have the Auth module loaded, almost all of these Admin commands require y
     Loads a module with optional arguments.
 *load (module[,module2[,module3]])* (7)
     Loads multiple modules, but arguments are not supported.
-*unload (module)* (7)
-    Unloads a module.
+*unload (module[,module2[,module3]])* (7)
+    Unloads one or multiple modules.
 *reload (module) [arg1 [arg2 [...]]]* (7)
     Reloads a module with optional arguments.
+*reload (module[,module2[,module3]])* (7)
+    Reoads multiple modules, but arguments are not supported.
 *enable (module)* (7)
     Enables a loaded and inactive module.
 *disable (module)* (7)
