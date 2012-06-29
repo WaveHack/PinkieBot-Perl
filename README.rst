@@ -44,6 +44,8 @@ If you have the Auth module loaded, almost all of these Admin commands require y
     Lists all modules who are both loaded and active.
 *load (module) [arg1 [arg2 [...]]]* (7)
     Loads a module with optional arguments.
+*load (module[,module2[,module3]])* (7)
+    Loads multiple modules, but arguments are not supported.
 *unload (module)* (7)
     Unloads a module.
 *reload (module) [arg1 [arg2 [...]]]* (7)
