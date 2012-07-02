@@ -20,7 +20,6 @@ sub handleEmote {
 
 	# Check if the bot got slapped
 	if (lc($slapped) eq lc($bot->nick)) {
-		print "kicking " . $message->{who} . "\n";
 		$bot->kick(
 			$message->{channel},
 			$message->{who},
@@ -31,7 +30,6 @@ sub handleEmote {
 
 	# Check if a chanop got slapped, but only if we're not slapping ourselves
 	if ((lc($slapped) ne lc($message->{who})) && $bot->pocoirc->is_channel_operator($message->{channel}, $slapped)) {
-		print "kicking " . $message->{who} . " for slapping an operator\n";
 		$bot->kick(
 			$message->{channel},
 			$message->{who},
