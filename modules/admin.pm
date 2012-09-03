@@ -63,7 +63,7 @@ sub handleSaidListAvailable {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^list available(?: modules)?$/));
-	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6)); 
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
 
 	$bot->reply(('Available modules: ' . join(', ', sort($bot->getAvailableModules()))), $message);
 }
@@ -72,7 +72,7 @@ sub handleSaidListLoaded {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^list loaded(?: modules)?$/));
-	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6)); 
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
 
 	$bot->reply(('Loaded modules: ' . join(', ', sort($bot->getLoadedModules()))), $message);
 }
@@ -135,7 +135,7 @@ sub handleSaidUnloadModule {
 		}
 
 		my $ret = $bot->unloadModule($_);
-		$bot->reply("$ret->{string} [Status: $ret->{status}, Code: $ret->{code}]", $message);		
+		$bot->reply("$ret->{string} [Status: $ret->{status}, Code: $ret->{code}]", $message);
 	}
 }
 
@@ -236,8 +236,8 @@ sub handleSaidCmd {
 
 	return unless ($bot->module('auth')->checkAuthorization($bot, $message, 9));
 
-	my @output = `$1`;
-	
+	my @output = `$1 2>&1`;
+
 	$bot->reply(join('', @output), $message);
 }
 
@@ -265,7 +265,7 @@ sub handleSaidChanJoin {
 	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
 
  	my $channel = $1;
- 	
+
  	$bot->join_channel($channel);
 }
 
@@ -276,7 +276,7 @@ sub handleSaidChanPart {
 	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
 
  	my $channel = $1;
- 	
+
  	$bot->leave_channel($channel, "Part request by $message->{who}.");
 }
 
