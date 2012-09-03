@@ -238,7 +238,13 @@ sub handleSaidCmd {
 
 	my @output = `$1 2>&1`;
 
-	$bot->reply(join('', @output), $message);
+	# Check return status
+	my $prefix = '';
+	if ($? == -1) {
+		$prefix .= "\x02Error:\x0F ";
+	}
+
+	$bot->reply(($prefix . join('', @output)), $message);
 }
 
 sub handleSaidEval {
