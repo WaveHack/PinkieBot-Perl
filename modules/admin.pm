@@ -238,9 +238,9 @@ sub handleSaidCmd {
 
 	my @output = `$1 2>&1`;
 
-	# Check return status
+	# Check exit code. Anything but 0 is an error. Prefix bot reply with Error.
 	my $prefix = '';
-	if ($? == -1) {
+	if ($? != 0) {
 		$prefix .= "\x02Error:\x0F ";
 	}
 
