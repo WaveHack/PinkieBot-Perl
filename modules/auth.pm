@@ -93,7 +93,7 @@ sub handleSaidWhoami {
 
 sub handleSaidListUsers {
 	my ($bot, $message) = @_;
-	
+
 	return unless ($bot->addressedMsg($message) && ($message->{body} =~ /^list users$/));
 	return unless (checkAuthorization($bot, $message, 8));
 
@@ -132,7 +132,7 @@ sub handleSaidAddUser {
 	unless (defined($level)) {
 		$level = 0;
 	}
-	
+
 	# todo: Check if username already exists
 
 	# Insert user
@@ -160,7 +160,7 @@ sub handleSaidDeleteUser {
 
 	$sth = $bot->{db}->prepare('DELETE FROM auth WHERE username = ?;');
 	$sth->execute($username);
-	
+
 	$bot->reply("User '$username' deleted.", $message);
 }
 
@@ -183,7 +183,7 @@ sub handleSaidChangeLevel {
 
 	my $authorizationLevel = authorizationLevel($message->{raw_nick});
 
-	# Can only change level to equal or lower than current level 
+	# Can only change level to equal or lower than current level
 	if ($level > $authorizationLevel) {
 		$bot->reply("Can only change target level to level $authorizationLevel or lower.", $message);
 		return;
@@ -243,7 +243,7 @@ sub checkAuthorization {
 	my $authorizationLevel = authorizationLevel($raw_nick);
 
 	unless ($authorizationLevel >= $level) {
-		$bot->reply("You are not authorized to preform that command. (Have level $authorizationLevel, need level $level).", $message);
+		$bot->reply("You are not authorized to perform that command. (Have level $authorizationLevel, need level $level).", $message);
 		return 0;
 	}
 
