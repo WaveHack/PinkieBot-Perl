@@ -8,7 +8,7 @@ use DBI;
 use warnings;
 use strict;
 
-my $version = '2.1.0';
+my $version = '2.1.1';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack (aka Octavia). See https://bitbucket.org/WaveHack/pinkiebot for more info, reporting issues, command usage and source code.');
 
 # --- Initialization ---
@@ -52,7 +52,7 @@ print "Initializing bot\n";
 my $bot = PinkieBot->new(
 	server   => $cfg->val('irc', 'server'),
 	port     => $cfg->val('irc', 'port', '6667'),
-	password => $cfg->val('irc', 'server', undef),
+	password => $cfg->val('irc', 'password'),
 	channels => [split(',', $cfg->val('irc', 'channels'))],
 	nick     => $cfg->val('irc', 'nick'),
 	name     => ('PinkieBot v' . $version)
