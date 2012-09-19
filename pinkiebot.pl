@@ -8,7 +8,7 @@ use DBI;
 use warnings;
 use strict;
 
-my $version = '2.0.10';
+my $version = '2.0.11';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack (aka Octavia). See https://bitbucket.org/WaveHack/pinkiebot for more info, reporting issues, command usage and source code.');
 
 # --- Initialization ---
@@ -22,6 +22,7 @@ unless (-e 'pinkiebot.ini') {
 	    , "modify pinkiebot.ini and restart the bot.\n";
 
 	my $cfg = Config::IniFiles->new();
+
 	$cfg->newval('mysql', 'host', 'localhost');
 	$cfg->newval('mysql', 'username', 'root');
 	$cfg->newval('mysql', 'password', '');
@@ -30,10 +31,14 @@ unless (-e 'pinkiebot.ini') {
 	$cfg->newval('irc', 'nickpass', '');
 	$cfg->newval('irc', 'server', 'irc.example.net');
 	$cfg->newval('irc', 'port', 6667);
+	$cfg->newval('irc', 'password', '');
 	$cfg->newval('irc', 'channels', '#channel');
-	$cfg->SetParameterComment('irc', 'channels', 'Separate multiple channels with spaces');
 	$cfg->newval('irc', 'autoload', 'auth admin');
+
+	$cfg->SetParameterComment('irc', 'server', 'Server password');
+	$cfg->SetParameterComment('irc', 'channels', 'Separate multiple channels with spaces');
 	$cfg->SetParameterComment('irc', 'autoload', 'Autoload modules on start, separate with spaces');
+
 	$cfg->WriteConfig('pinkiebot.ini');
 	exit;
 }
@@ -47,6 +52,7 @@ print "Initializing bot\n";
 my $bot = PinkieBot->new(
 	server   => $cfg->val('irc', 'server'),
 	port     => $cfg->val('irc', 'port', '6667'),
+	password => $cfg->val('irc', 'server', undef),
 	channels => [split(' ', $cfg->val('irc', 'channels'))],
 	nick     => $cfg->val('irc', 'nick'),
 	name     => ('PinkieBot v' . $version)
