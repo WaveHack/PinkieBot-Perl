@@ -8,7 +8,7 @@ use DBI;
 use warnings;
 use strict;
 
-my $version = '2.0.11';
+my $version = '2.1.0';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack (aka Octavia). See https://bitbucket.org/WaveHack/pinkiebot for more info, reporting issues, command usage and source code.');
 
 # --- Initialization ---
@@ -36,8 +36,8 @@ unless (-e 'pinkiebot.ini') {
 	$cfg->newval('irc', 'autoload', 'auth admin');
 
 	$cfg->SetParameterComment('irc', 'server', 'Server password');
-	$cfg->SetParameterComment('irc', 'channels', 'Separate multiple channels with spaces');
-	$cfg->SetParameterComment('irc', 'autoload', 'Autoload modules on start, separate with spaces');
+	$cfg->SetParameterComment('irc', 'channels', 'Separate multiple channels with commas');
+	$cfg->SetParameterComment('irc', 'autoload', 'Autoload modules on start, separate with commas');
 
 	$cfg->WriteConfig('pinkiebot.ini');
 	exit;
@@ -53,7 +53,7 @@ my $bot = PinkieBot->new(
 	server   => $cfg->val('irc', 'server'),
 	port     => $cfg->val('irc', 'port', '6667'),
 	password => $cfg->val('irc', 'server', undef),
-	channels => [split(' ', $cfg->val('irc', 'channels'))],
+	channels => [split(',', $cfg->val('irc', 'channels'))],
 	nick     => $cfg->val('irc', 'nick'),
 	name     => ('PinkieBot v' . $version)
 );
@@ -77,7 +77,7 @@ $bot->{db}->do('SET NAMES utf8');
 
 # Autoload modules if any (set in config)
 if ($cfg->val('irc', 'autoload') ne '') {
-	foreach (split(' ', $cfg->val('irc', 'autoload'))) {
+	foreach (split(',', $cfg->val('irc', 'autoload'))) {
 		print "Auto-loading module '$_'...\n ";
 
 		my $ret = $bot->loadModule($_);
