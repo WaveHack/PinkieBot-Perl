@@ -31,6 +31,7 @@ unless (-e 'pinkiebot.ini') {
 	$cfg->newval('irc', 'nickpass', '');
 	$cfg->newval('irc', 'server', 'irc.example.net');
 	$cfg->newval('irc', 'port', 6667);
+	$cfg->newval('irc', 'ssl', 0);
 	$cfg->newval('irc', 'password', '');
 	$cfg->newval('irc', 'channels', '#channel');
 	$cfg->newval('irc', 'autoload', 'auth admin');
@@ -52,6 +53,7 @@ print "Initializing bot\n";
 my $bot = PinkieBot->new(
 	server   => $cfg->val('irc', 'server'),
 	port     => $cfg->val('irc', 'port', '6667'),
+	ssl      => $cfg->val('irc' , 'ssl', '0'),
 	password => $cfg->val('irc', 'password'),
 	channels => [split(',', $cfg->val('irc', 'channels'))],
 	nick     => $cfg->val('irc', 'nick'),
