@@ -148,6 +148,8 @@ Module to search and replace quotes people said in the same IRC channel.
     Searches for the latest line where both $word1 and $word2 are in and switches them around.
 *s/(search)/(replace)/[modifiers]*
     Regex replace. See your friendly neighbourhood Perl Regular Expression manual for usage. Supported optional modifiers are 'g' and 'i'. There's hacked-in support for the full search string in the form of capture group 0 (\0).
+*q/(search)/[modifiers]*
+	Regex search. Essentially a s/search/\0/[modifiers] wrapper. Supported modifier is 'i', but is not yet implemented due to misconfigured MySQL schema. :D
 
 RFC
 ---

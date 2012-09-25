@@ -35,15 +35,16 @@ sub init {
 	$self->createTableIfNotExists('activity', $message);
 
 	# Prepared statements
-	$dbsth{searchquote}       = $self->{bot}->{db}->prepare('SELECT type, who, body FROM activity WHERE channel = ? AND body LIKE ? AND lower(who) != lower(?) AND BODY NOT LIKE "!%" AND BODY NOT LIKE "s/%" ORDER BY timestamp DESC LIMIT 1;');
-	$dbsth{searchquotedouble} = $self->{bot}->{db}->prepare('SELECT type, who, body FROM activity WHERE channel = ? AND body LIKE ? AND body LIKE ? AND lower(who) != lower(?) AND BODY NOT LIKE "!%" AND BODY NOT LIKE "s/%" ORDER BY timestamp DESC LIMIT 1;');
-	$dbsth{searchquoteregex}  = $self->{bot}->{db}->prepare('SELECT type, who, body FROM activity WHERE channel = ? AND body REGEXP ? AND lower(who) != lower(?) AND BODY NOT LIKE "!%" AND BODY NOT LIKE "s/%" ORDER BY timestamp DESC LIMIT 1;');
+	$dbsth{searchquote}       = $self->{bot}->{db}->prepare('SELECT type, who, body FROM activity WHERE channel = ? AND body LIKE ? AND lower(who) != lower(?) AND BODY NOT LIKE "!%" AND BODY NOT LIKE "s/%" AND BODY NOT LIKE "q/%" ORDER BY timestamp DESC LIMIT 1;');
+	$dbsth{searchquotedouble} = $self->{bot}->{db}->prepare('SELECT type, who, body FROM activity WHERE channel = ? AND body LIKE ? AND body LIKE ? AND lower(who) != lower(?) AND BODY NOT LIKE "!%" AND BODY NOT LIKE "s/%" AND BODY NOT LIKE "q/%" ORDER BY timestamp DESC LIMIT 1;');
+	$dbsth{searchquoteregex}  = $self->{bot}->{db}->prepare('SELECT type, who, body FROM activity WHERE channel = ? AND body REGEXP ? AND lower(who) != lower(?) AND BODY NOT LIKE "!%" AND BODY NOT LIKE "s/%" AND BODY NOT LIKE "q/%" ORDER BY timestamp DESC LIMIT 1;');
 
 	# Register hooks
 	$self->registerHook('said', \&handleSaidQuoteSearch);
 	$self->registerHook('said', \&handleSaidQuoteReplace);
 	$self->registerHook('said', \&handleSaidQuoteSwitch);
 	$self->registerHook('said', \&handleSaidQuoteRegex);
+	$self->registerHook('said', \&handleSaidQuoteRegexSearch);
 }
 
 # !q search
@@ -156,7 +157,7 @@ sub handleSaidQuoteSwitch {
 	my $word2 = $3 || $4;
 	my ($type, $who, $body);
 
-	# Search latest line, not by our bot and not starting with ! or s/
+	# Search latest line, not by our bot and not starting with !, s/ or q/
 	$dbsth{searchquotedouble}->execute($message->{channel}, "%$word1%", "%$word2%", $bot->pocoirc->nick_name);
 	$dbsth{searchquotedouble}->bind_columns(\$type, \$who, \$body);
 	$dbsth{searchquotedouble}->fetch;
@@ -208,7 +209,7 @@ sub handleSaidQuoteRegex {
 	my $modifiers = $3;
 	my ($type, $who, $body);
 
-	# Search latest line, not by our bot and not starting with ! or s/
+	# Search latest line, not by our bot and not starting with !, s/ or q/
 	$dbsth{searchquoteregex}->execute($message->{channel}, $search, $bot->pocoirc->nick_name);
 	$dbsth{searchquoteregex}->bind_columns(\$type, \$who, \$body);
 	$dbsth{searchquoteregex}->fetch;
@@ -221,6 +222,43 @@ sub handleSaidQuoteRegex {
 
 	# Limit to 293 characters to prevent spam
 	$body = ((length($body) > 296) ? (substr($body, 0, 293) . '...') : $body);
+
+	switch ($type) {
+		case 'said' {
+			$bot->say(
+				who     => $message->{who},
+				channel => $message->{channel},
+				body    => "<$who> $body",
+				address => $message->{address}
+			);
+		}
+		case 'emote' {
+			$bot->say(
+				who     => $message->{who},
+				channel => $message->{channel},
+				body    => "* $who $body",
+				address => $message->{address}
+			);
+		}
+	}
+}
+
+# q/search/[modifiers]
+# A s/search/\0/[modifiers] wrapper to search a string with Regex, but not
+# replace anything
+sub handleSaidQuoteRegexSearch {
+	my ($bot, $message) = @_;
+
+	return unless ($message->{body} =~ /^q\/([^\/]+)\/(i?)/);
+
+	my $search = $1;
+	my $modifiers = $2; # nyi until I fix mysql tables
+	my ($type, $who, $body);
+
+	# Search latest line, not by our bot and not starting with !, s/ or q/
+	$dbsth{searchquoteregex}->execute($message->{channel}, $search, $bot->pocoirc->nick_name);
+	$dbsth{searchquoteregex}->bind_columns(\$type, \$who, \$body);
+	$dbsth{searchquoteregex}->fetch;
 
 	switch ($type) {
 		case 'said' {
