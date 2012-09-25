@@ -185,8 +185,7 @@ sub handleSaidDisableModule {
 sub handleSaidModuleLoaded {
 	my ($bot, $message) = @_;
 
-	return unless ($bot->addressed($message) && ($message->{body} =~ /^(?:(?:is )?module )?(.+)(?: loaded)\?$/));
-	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
+	return unless ($bot->addressed($message) && ($message->{body} =~ /^(?:is )?(?:module )?(.+)(?: loaded)\?$/));
 
 	$bot->reply(($bot->moduleLoaded($1) ? 'Yessiree!' : 'Nopie dopie lopie!'), $message);
 }
@@ -194,8 +193,7 @@ sub handleSaidModuleLoaded {
 sub handleSaidModuleActive {
 	my ($bot, $message) = @_;
 
-	return unless ($bot->addressed($message) && ($message->{body} =~ /^(?:(?:is )?module )?(.+)(?: active)\?$/));
-	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
+	return unless ($bot->addressed($message) && ($message->{body} =~ /^(?:is )?(?:module )?(.+)(?: active)\?$/));
 
 	$bot->reply(($bot->moduleActive($1) ? 'Yessiree!' : 'Nopie dopie lopie!'), $message);
 }
