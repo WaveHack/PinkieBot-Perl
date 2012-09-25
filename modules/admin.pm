@@ -40,7 +40,6 @@ sub handleSaidListModules {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^list(?: all)? modules$/));
-	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
 
 	my @availableModules = $bot->getAvailableModules();
 	my @activeModules = $bot->getActiveModules();
@@ -63,7 +62,6 @@ sub handleSaidListAvailable {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^list available(?: modules)?$/));
-	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
 
 	$bot->reply(('Available modules: ' . join(', ', sort($bot->getAvailableModules()))), $message);
 }
@@ -72,7 +70,6 @@ sub handleSaidListLoaded {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^list loaded(?: modules)?$/));
-	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
 
 	$bot->reply(('Loaded modules: ' . join(', ', sort($bot->getLoadedModules()))), $message);
 }
@@ -81,7 +78,6 @@ sub handleSaidListActive {
 	my ($bot, $message) = @_;
 
 	return unless ($bot->addressed($message) && ($message->{body} =~ /^list active(?: modules)?$/));
-	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 6));
 
 	$bot->reply(('Active modules: ' . join(', ', sort($bot->getActiveModules()))), $message);
 }

@@ -26,7 +26,9 @@ Numbers behind the commands indicate the required authorization level to perform
     * 8 - User management and bot updating
     * 9 - Arbitairy Perl/Shell commands
 
-Round brackets () in a command indicate that that parameter is required and the commmand will use that parameter for the functionality it's supposed to do. Square brackets [] indicate that that argument is optional and can be omitted. 
+One can have as many auth levels as the size of your database field (sizeof int, usually). Do note that higher auth levels include lower auth levels, since auth checking is done with >=.
+
+Round brackets () in a command indicate that that parameter is required and the commmand will use that parameter for the functionality it's supposed to do. Square brackets [] indicate that that argument is optional and can be omitted.
 
 Admin
 -----
@@ -34,13 +36,17 @@ Default administration module for PinkieBot. Do not unload it unless you want to
 
 If you have the Auth module loaded, almost all of these Admin commands require you to be logged in in the Auth module. The 'eval' and 'cmd' functions are disabled if the Auth module isn't loaded to prevent abuse.
 
+Due to request, listing modules (all, loaded and active) are available to see for people who are not logged in.
+
 **Commands**:
 
-*list available* (6)
+*list all [modules]*
+    Lists all modules, grouped by active, loaded and available.
+*list available [modules]*
     Lists all available modules. More specifically: modules/\*.pm files.
-*list loaded* (6)
+*list loaded [modules]*
     Lists all loaded modules. Loaded modules are not neccessarily active.
-*list active* (6)
+*list active [modules]*
     Lists all modules who are both loaded and active.
 *load (module) [arg1 [arg2 [...]]]* (7)
     Loads a module with optional arguments.
@@ -56,9 +62,9 @@ If you have the Auth module loaded, almost all of these Admin commands require y
     Enables a loaded and inactive module.
 *disable (module)* (7)
     Disables a loaded and active module.
-*(module) loaded* (6)
+*(module) loaded*
     Checks whether a module is loaded.
-*(module) active* (6)
+*(module) active*
     Checks whether a module is active.
 *update* (8)
     Updates the bot's code from the repository.
