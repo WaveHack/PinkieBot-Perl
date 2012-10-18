@@ -15,6 +15,8 @@ Legal
 =====
 PinkieBot is licensed under the DBAD license, which can be found here: http://philsturgeon.co.uk/code/dbad-license
 
+The PinkieBot logo (pinkiebot.png) is made and (c) Copyright by `secret-pony <http://secret-pony.deviantart.com/art/Pinkiebot-286224629>`_ on DeviantArt.
+
 Modules
 =======
 Numbers behind the commands indicate the required authorization level to perform that command. Levels with an asterisk require the Auth module to be loaded. There's no set lines for authorization levels, but I generally use the following rules:
