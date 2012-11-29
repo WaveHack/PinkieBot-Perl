@@ -13,6 +13,7 @@ sub init {
 	# Register hooks
 	$self->registerHook('said', \&handleSaidWebSearch);
 	$self->registerHook('said', \&handleSaidImageSearch);
+	$self->registerHook('said', \&handleSaidYoutubeSearch);
 }
 
 sub handleSaidWebSearch {
@@ -21,7 +22,7 @@ sub handleSaidWebSearch {
 	return unless ($message->{body} =~ /^!g(?:oogle)? (.+)/);
 
 	my $searchTerm = $1;
-	my $search = Google::Search->Web(query => $searchTerm);
+	my $search = Google::Search->Web(query => $searchTerm, hl => 'nl');
 	my $result = $search->first;
 
 	unless (defined($result)) {
@@ -51,7 +52,35 @@ sub handleSaidImageSearch {
 	return unless ($message->{body} =~ /^!(?:gi|gimage|googleimages?) (.+)/);
 
 	my $searchTerm = $1;
-	my $search = Google::Search->Image(query => $searchTerm);
+	my $search = Google::Search->Image(query => $searchTerm, hl => 'nl');
+	my $result = $search->first;
+
+	unless (defined($result)) {
+		$bot->say(
+			who     => $message->{who},
+			channel => $message->{channel},
+			body    => ($message->{who} . ': Sorry, I can\'t find anything for \'' . $searchTerm . '\' on Google Images.'),
+			address => $message->{address}
+		);
+
+		return;
+	}
+
+	$bot->say(
+		who     => $message->{who},
+		channel => $message->{channel},
+		body    => ($message->{who} . ': ' . $result->uri),
+		address => $message->{address}
+	);
+}
+
+sub handleSaidYoutubeSearch {
+	my ($bot, $message) = @_;
+
+	return unless ($message->{body} =~ /^!y(?:outube)? (.+)/);
+
+	my $searchTerm = $1;
+	my $search = Google::Search->Image(query => 'link:youtube.com ' . $searchTerm, hl => 'nl');
 	my $result = $search->first;
 
 	unless (defined($result)) {
