@@ -80,7 +80,7 @@ sub handleSaidYoutubeSearch {
 	return unless ($message->{body} =~ /^!y(?:outube)? (.+)/);
 
 	my $searchTerm = $1;
-	my $search = Google::Search->Image(query => 'site:youtube.com ' . $searchTerm, hl => 'nl');
+	my $search = Google::Search->Web(query => 'site:youtube.com ' . $searchTerm, hl => 'nl');
 	my $result = $search->first;
 
 	unless (defined($result)) {
