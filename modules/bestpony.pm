@@ -1,5 +1,5 @@
 package PinkieBot::Module::Bestpony;
-use base 'PinkieBot::Bestpony';
+use base 'PinkieBot::Module';
 use warnings;
 no warnings 'redefine';
 use strict;
