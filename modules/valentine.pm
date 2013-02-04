@@ -16,7 +16,7 @@ sub handleSaidValentine {
 
 	return unless (
 		($message->{body} =~ /(valentine|valentijn)/i)
-		&& ($message->{body} =~ /(alone|alleen|eenzaam|commerci\w+)/i)
+		&& ($message->{body} =~ /(alone|lonely|alleen|eenzaam|eenzame|commerci\w+)/i)
 	);
 
 	$bot->say(
