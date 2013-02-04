@@ -9,13 +9,15 @@ sub init {
 
 	# Register hooks
 	$self->registerHook('said', \&handleSaidValentine);
-	$self->registerHook('said', \&handleSaidValentijn);
 }
 
 sub handleSaidValentine {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /(valentine|valentijn)/i && $message->{body} =~ /(alone|alleen|eenzaam)/i);
+	return unless (
+		($message->{body} =~ /(valentine|valentijn)/i)
+		&& ($message->{body} =~ /(alone|alleen|eenzaam|commerci\w+)/i)
+	);
 
 	$bot->say(
 		who     => $message->{who},
