@@ -77,7 +77,7 @@ sub handleSaidImageSearch {
 sub handleSaidYoutubeSearch {
 	my ($bot, $message) = @_;
 
-	return unless ($message->{body} =~ /^!y(?:outube)? (.+)/);
+	return unless ($message->{body} =~ /^!y(?:t|outube)? (.+)/);
 
 	my $searchTerm = $1;
 	my $search = Google::Search->Web(query => 'site:youtube.com ' . $searchTerm, hl => 'nl');
