@@ -59,12 +59,10 @@ sub handleSaidUnignore {
 	}
 
 	# Remove host from array
-	foreach (@ignored) {
-		splice(@ignored, $_, 1) if ($_ =~ /\Q$host\E/i);
-	}
+	@ignored = grep { not $ignored[$_] =~ /\Q$host\E/i } @ignored;
 
 	# Remove host from db
-	$bot->{db}->do("DELETE IGNORE FROM `ignore` WHERE LOWER(`host`) = LOWER('$host');");
+	$bot->{db}->do("DELETE IGNORE FROM `ignore` WHERE `host` = '$host';");
 
 	$bot->reply("Unignored '$host'.", $message);
 }
