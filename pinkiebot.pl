@@ -8,7 +8,7 @@ use DBI;
 use warnings;
 use strict;
 
-my $version = '2.1.1';
+my $version = '2.2.0';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack (aka Octavia). See https://bitbucket.org/WaveHack/pinkiebot for more info, reporting issues, command usage and source code.');
 
 # --- Initialization ---
@@ -346,6 +346,7 @@ sub processHooks {
 			&& ($module ne 'admin')
 			&& ($module ne 'auth')
 			&& ($module ne 'log')
+			&& ($module ne 'ignore')
 		);
 
 		# For each hook of said type

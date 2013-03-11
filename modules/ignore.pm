@@ -18,44 +18,88 @@ sub init {
 	$self->registerHook('said', \&handleSaidListIgnored);
 
 	# Fill @ignored from db
-
-	#$self->{bot}->{db}->prepare('SELECT host FROM ignored;');
+	@ignored = @{$bot->{db}->selectcol_arrayref('SELECT `host` FROM `ignore`;')};
 }
 
 sub handleSaidIgnore {
 	my ($bot, $message) = @_;
 
 	return unless ($message->{body} =~ /^!ignore (.+)/);
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->authorizationLevel($message->{raw_nick}) >= 7);
 
 	my $host = $1;
 
-	# todo
+	# Check if already ignored
+	if (grep(/\Q$host\E/i, @ignored)) {
+		$bot->reply("Already ignored '$host'.", $message);
+		return;
+	}
+
+	# Add host to array
+	push(@ignored, $host);
+
+	# Add host to db
+	$bot->{db}->do("INSERT IGNORE INTO `ignore` (`host`) VALUES ('$host');");
+
+	$bot->reply("Ignored '$host'.", $message);
 }
 
 sub handleSaidUnignore {
 	my ($bot, $message) = @_;
 
 	return unless ($message->{body} =~ /^!unignore (.+)/);
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->authorizationLevel($message->{raw_nick}) >= 7);
 
 	my $host = $1;
 
-	# todo
+	# Check if not ignored
+	unless (grep(/\Q$host\E/i, @ignored)) {
+		$bot->reply("'$host' is not ignored. Try '!list ignored' for a full list.", $message);
+		return;
+	}
+
+	# Remove host from array
+	foreach (@ignored) {
+		splice(@ignored, $_, 1) if ($_ =~ /\Q$host\E/i);
+	}
+
+	# Remove host from db
+	$bot->{db}->do("DELETE IGNORE FROM `ignore` WHERE LOWER(`host`) = LOWER('$host');");
+
+	$bot->reply("Unignored '$host'.", $message);
 }
 
 sub handleSaidListIgnored {
 	my ($bot, $message) = @_;
 
 	return unless ($message->{body} =~ /^!(list )?ignored/);
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->authorizationLevel($message->{raw_nick}) >= 7);
 
-	# todo
+	my $ignoredlist = join("', '", @ignored);
+	if ($ignoredlist eq '') {
+		$ignoredlist = "Nobody";
+	} else {
+		$ignoredlist = "'$ignoredlist'";
+	}
+
+	$bot->reply("Currently ignoring: $ignoredlist.", $message);
 }
 
 sub ignoring {
 	my ($module, $bot, $message) = @_;
 
-	# todo
+	unless (defined($message->{raw_nick})) {
+		return 0;
+	}
 
-	# nickname!userid@host
+	foreach (@ignored) {
+		my $temp = $_;
+		$temp =~ s/\*/\.\+/g;
+
+		if ($message->{raw_nick} =~ /$temp/i) {
+			return 1;
+		}
+	}
 
 	return 0;
 }
