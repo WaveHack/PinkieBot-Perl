@@ -25,7 +25,7 @@ sub handleSaidIgnore {
 	my ($bot, $message) = @_;
 
 	return unless ($message->{body} =~ /^!ignore (.+)/);
-	return if ($bot->moduleActive('auth') && !$bot->module('auth')->authorizationLevel($message->{raw_nick}) >= 7);
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
 
 	my $host = $1;
 
@@ -48,7 +48,7 @@ sub handleSaidUnignore {
 	my ($bot, $message) = @_;
 
 	return unless ($message->{body} =~ /^!unignore (.+)/);
-	return if ($bot->moduleActive('auth') && !$bot->module('auth')->authorizationLevel($message->{raw_nick}) >= 7);
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
 
 	my $host = $1;
 
@@ -73,7 +73,7 @@ sub handleSaidListIgnored {
 	my ($bot, $message) = @_;
 
 	return unless ($message->{body} =~ /^!(list )?ignored/);
-	return if ($bot->moduleActive('auth') && !$bot->module('auth')->authorizationLevel($message->{raw_nick}) >= 7);
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
 
 	my $ignoredlist = join("', '", @ignored);
 	if ($ignoredlist eq '') {
