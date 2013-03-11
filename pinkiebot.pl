@@ -332,23 +332,33 @@ sub hookRegistered {
 # hooked function(s), if any. Function calls are done in an eval{} block to
 # catch logic errors and unloads the module if it happens to find an error.
 sub processHooks {
-	my ($self, $type, $data) = @_;
+	my ($self, $type, $message) = @_;
 
 	# For each module
 	while (my ($module, $moduleHash) = each(%{$self->{modules}})) {
 		next if ($moduleHash->{enabled} == 0);
 
+		# Check if we have the ignore module loaded. Ignored users don't trigger
+		# any module hooks, except for the modules admin, auth and log
+		next if (
+			$self->moduleLoaded('ignore')
+			&& $self->module('ignore')->ignoring($self, $message)
+			&& ($module ne 'admin')
+			&& ($module ne 'auth')
+			&& ($module ne 'log')
+		);
+
 		# For each hook of said type
 		foreach (@{$moduleHash->{hooks}->{$type}}) {
-			eval { $self->$_($data); };
+			eval { $self->$_($message); };
 
 			# Complain and unload module on error
 			if ($@) {
 				$self->notice(
-					who     => $data->{who},
-					channel => $data->{channel},
+					who     => $message->{who},
+					channel => $message->{channel},
 					body    => "\x02Module '$module' encountered an error and will be unloaded:\x0F $@",
-					address => $data->{address}
+					address => $message->{address}
 				);
 
 				$self->unloadModule($module);
