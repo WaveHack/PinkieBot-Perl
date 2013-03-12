@@ -121,6 +121,19 @@ Googles for a term and returns the topmost result.
 *!gi (query)*
     Googles images with said query and returns the first result.
 
+Ignore
+------
+Ignore module to ignore certain hosts on invoking commands. Momentarily, all
+modules but Admin, Auth, Ignore and Log will ignore the user if its raw nickname
+correspondents to an ignored record.
+
+*!ignore (host)* (7)
+    Ignores a host. Case insensitive.
+*!unignore (host)* (7)
+	Unignores a host.
+*!(list )ignored* (7)
+	Prints a list of currenly ignored hosts, if any.
+
 Log
 ---
 Records all raw activity in the MySQL database in the 'activity' table.
