@@ -59,7 +59,7 @@ sub handleSaidUnignore {
 	}
 
 	# Remove host from array
-	@ignored = grep { not $ignored[$_] =~ /\Q$host\E/i } @ignored;
+	@ignored = grep { not $_ =~ /\Q$host\E/i } @ignored;
 
 	# Remove host from db
 	$bot->{db}->do("DELETE IGNORE FROM `ignore` WHERE `host` = '$host';");
