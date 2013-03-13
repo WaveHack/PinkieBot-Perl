@@ -8,7 +8,7 @@ use DBI;
 use warnings;
 use strict;
 
-my $version = '2.2.0';
+my $version = '2.2.1';
 my $botinfo = ('PinkieBot v' . $version . ' by WaveHack (aka Octavia). See https://bitbucket.org/WaveHack/pinkiebot for more info, reporting issues, command usage and source code.');
 
 # --- Initialization ---
@@ -121,7 +121,7 @@ sub chanpart    { $_[0]->processHooks('chanpart'   , $_[1]); return; }
 sub topic       { $_[0]->processHooks('topic'      , $_[1]); return; }
 sub nick_change { $_[0]->processHooks('nick_change', ($_[1], $_[2])); return; }
 sub kicked      { $_[0]->processHooks('kicked'     , $_[1]); return; }
-sub userquit    { $_[0]->processHooks('userquit   ', $_[1]); return; }
+sub userquit    { $_[0]->processHooks('userquit'   , $_[1]); return; }
 sub help        { return $botinfo; }
 
 # --- Bot Functions ---
