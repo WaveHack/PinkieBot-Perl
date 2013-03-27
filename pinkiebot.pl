@@ -34,7 +34,7 @@ unless (-e 'pinkiebot.ini') {
 	$cfg->newval('irc', 'ssl', 0);
 	$cfg->newval('irc', 'password', '');
 	$cfg->newval('irc', 'channels', '#channel');
-	$cfg->newval('irc', 'autoload', 'auth admin');
+	$cfg->newval('irc', 'autoload', 'auth,admin');
 
 	$cfg->SetParameterComment('irc', 'server', 'Server password');
 	$cfg->SetParameterComment('irc', 'channels', 'Separate multiple channels with commas');
