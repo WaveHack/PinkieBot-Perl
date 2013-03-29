@@ -30,7 +30,7 @@ sub handleSaidWatch {
 		@{$watchlist{$watcher}} = ();
 	}
 
-	unless ($watched ~~ @{$watchlist{$watcher}}) {
+	unless ($watched =~ @{$watchlist{$watcher}}) {
 		push(@{$watchlist{$watcher}}, lc($watched));
 
 		$bot->say(
@@ -39,7 +39,7 @@ sub handleSaidWatch {
 			body    => ($watcher . ': Okay.'),
 			address => $message->{address}
 		);
-		
+
 		return;
 	}
 
