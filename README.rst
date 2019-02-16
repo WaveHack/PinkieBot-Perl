@@ -110,16 +110,6 @@ Cupcakes
 --------
 Responds with a random phrase or emote when someone mentions the word 'cupcakes'.
 
-Google
-------
-Googles for a term and returns the topmost result.
-
-**Commands**:
-
-*!g (query)*
-    Googles web pages  with said query and returns the first result.
-*!gi (query)*
-    Googles images with said query and returns the first result.
 
 Ignore
 ------
@@ -137,17 +127,6 @@ correspondents to an ignored record.
 Log
 ---
 Records all raw activity in the MySQL database in the 'activity' table.
-
-MLFW
-----
-My Little Face When module.
-
-**Commands**:
-
-*!mlfw (tag1)[,tag2[,tag3[...]]]*
-    Searches MLFW for the tags and returns one random result.
-*>mlfw [anything]*
-    Fetches a completely random MLFW.
 
 Oatmeal
 -------
@@ -199,15 +178,6 @@ Reports when and where a person has been last seen by the bot.
 Social
 ------
 Some basic responses when interacting with the bot. Namely greeting the bot and some friendly emotes (e.g. hugs, pats). See the module code for full list.
-
-Synchtube
----------
-Module which posts the title of a Synchtube room, if it exists.
-
-**Commands**:
-
-*!st (room)* or *!synchtube (room)*
-    Posts the title of the Synchtube room.
 
 Title
 -----
