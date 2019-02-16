@@ -13,7 +13,7 @@ MySQL database and pinkiebot.ini configuration file is hardcoded into PinkieBot 
 
 Legal
 =====
-PinkieBot is licensed under the DBAD license, which can be found here: http://philsturgeon.co.uk/code/dbad-license
+PinkieBot is licensed under the MIT license.
 
 The PinkieBot logo (pinkiebot.png) is made and (c) Copyright by `secret-pony <http://secret-pony.deviantart.com/art/Pinkiebot-286224629>`_ on DeviantArt.
 
