@@ -11,8 +11,8 @@ tzset;
 use warnings;
 use strict;
 
-my $version = '2.2.1';
-my $botinfo = ('PinkieBot v' . $version . ' by WaveHack (aka Octavia). See https://bitbucket.org/WaveHack/pinkiebot for more info, reporting issues, command usage and source code.');
+my $version = '2.2.4';
+my $botinfo = ('PinkieBot v' . $version . ' by WaveHack (aka Octavia). See https://github.com/WaveHack/PinkieBot-Perl for more info, reporting issues, command usage and source code.');
 
 # --- Initialization ---
 
