@@ -33,6 +33,8 @@ sub init {
 	$self->registerHook('said', \&handleSaidEval);
 	$self->registerHook('said', \&handleSaidChanJoin);
 	$self->registerHook('said', \&handleSaidChanPart);
+	$self->registerHook('said', \&handleSaidTopicSet);
+	$self->registerHook('said', \&handleSaidBotQuit);
 	$self->registerHook('invited', \&handleInvited);
 }
 
@@ -286,6 +288,25 @@ sub handleInvited {
 	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
 
 	$bot->join_channel($message->{channel});
+}
+
+sub handleSaidTopicSet {
+	my ($bot, $message) = @_;
+
+	return unless ($bot->addressed($message) && ($message->{body} =~ /^topic (.+)(.+)/));
+	return if ($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7));
+
+ 	my $channel = $1;
+	my $topic = $2;
+
+ 	$bot->topic($channel, $topic);
+}
+
+sub handleSaidBotQuit {
+	my ($bot, $message) = @_;
+
+	return unless ($bot->addressed($message) && ($message->{body} =~ /^quit/));
+	return if (($bot->moduleActive('auth') && !$bot->module('auth')->checkAuthorization($bot, $message, 7)));
 }
 
 1;
