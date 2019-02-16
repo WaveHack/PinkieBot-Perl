@@ -77,8 +77,9 @@ $bot->{cfg} = $cfg;
 
 print "Creating database link\n";
 
-$bot->{db} = DBI->connect(sprintf('DBI:mysql:%s;host=%s', $bot->{cfg}->val('mysql', 'database'), $bot->{cfg}->val('mysql', 'host')), $bot->{cfg}->val('mysql', 'username'), $bot->{cfg}->val('mysql', 'password'), {'mysql_enable_utf8' => 1}) or die($DBI::errstr . "\n");
+$bot->{db} = DBI->connect(sprintf('DBI:mysql:%s;host=%s', $bot->{cfg}->val('mysql', 'database'), $bot->{cfg}->val('mysql', 'host')), $bot->{cfg}->val('mysql', 'username'), $bot->{cfg}->val('mysql', 'password'), {'mysql_enable_utf8' => 1, mysql_auto_reconnect => 1, RaiseError => 1}) or die($DBI::errstr . "\n");
 $bot->{db}->do('SET NAMES utf8');
+$bot->{db}->{mysql_auto_reconnect} = 1;
 
 # Autoload modules if any (set in config)
 if ($cfg->val('irc', 'autoload') ne '') {
