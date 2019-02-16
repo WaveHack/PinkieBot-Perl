@@ -4,6 +4,9 @@ use base 'Bot::BasicBot';
 use Config::IniFiles;
 use POE;
 use DBI;
+use POSIX qw(tzset);
+$ENV{TZ} = 'Europe/Amsterdam';
+tzset;
 
 use warnings;
 use strict;
